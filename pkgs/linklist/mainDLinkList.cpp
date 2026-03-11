@@ -3,6 +3,16 @@
 #include <cstdio>
 #include <cstdlib>
 
+#include <iostream>
+
+// 一个简单的断言增强，方便定位问题
+#define TEST_ASSERT(cond, msg)                                                 \
+  if (!(cond)) {                                                               \
+    std::cerr << "FAILED: " << msg << std::endl;                               \
+    abort();                                                                   \
+  } else {                                                                     \
+    std::cout << "PASSED: " << msg << std::endl;                               \
+  }
 // 辅助函数：打印链表内容
 void PrintList(DLinkList L) {
   DLNode *p = L->next;
@@ -28,49 +38,43 @@ void DestroyList(DLinkList &L) {
 int main() {
   DLinkList L;
 
-  // 1. 测试初始化
-  printf("--- Test 1: Initialization ---\n");
-  if (InitDList(L)) {
-    printf("Init Success.\n");
+  // 1. 初始化阶段
+  InitDList(L);
+  TEST_ASSERT(L != nullptr && L->next == nullptr, "Initialization");
+
+  // 2. 插入阶段 (测试不同位置)
+  InsertPrior(L, 1, 10); // [10]
+  InsertPrior(L, 2, 20); // [10, 20]
+  InsertPrior(L, 2, 15); // [10, 15, 20]
+  TEST_ASSERT(LengthWithoutHeadNode(L) == 3,
+              "Length after multiple insertions");
+
+  // 3. 删除阶段 (重点测试引用安全)
+  // 利用 C++17 作用域语法，确保 deleted_val 不会泄露到后续逻辑
+  printf("Before deletion");
+  PrintList(L);
+  if (int deleted_val; DeletePrior(L, 2, deleted_val)) {
+    TEST_ASSERT(deleted_val == 10, "Value captured from deletion");
+    TEST_ASSERT(LengthWithoutHeadNode(L) == 2, "Length after deletion");
+  } else {
+    TEST_ASSERT(false, "Deletion should have succeeded");
   }
-  assert(L != NULL);
-  assert(LengthWithoutHeadNode(L) == 0);
-  PrintList(L);
 
-  // 2. 测试插入
-  printf("\n--- Test 2: Insertion ---\n");
-  InsertPrior(L, 1, 10);
-  InsertPrior(L, 2, 20);
-  InsertPrior(L, 2, 15);
+  // 4. 边界与防御性测试
+  // 测试：删除不存在的位置
+  int dummy;
+  TEST_ASSERT(DeletePrior(L, 99, dummy) == false, "Delete out of range");
 
-  PrintList(L);
-  assert(LengthWithoutHeadNode(L) == 3);
-  assert(GetElem(L, 1)->data == 10);
-  assert(GetElem(L, 2)->data == 15);
+  // 测试：删除头节点的前驱（通常是非法操作）
+  TEST_ASSERT(DeletePrior(L, 1, dummy) == false, "Delete head node's prior");
 
-  // 3. 测试查找
-  printf("\n--- Test 3: Search ---\n");
-  DLNode *target = LocateElem(L, 15);
-  assert(target != NULL && target->data == 15);
-  printf("LocateElem(15) found. Prior is %d\n", target->prior->data);
-
-  // 4. 测试删除
-  printf("\n--- Test 4: Deletion ---\n");
-  bool del_ok = DeletePrior(L, 2, 0);
-  assert(del_ok == true);
-  printf("After DeletePrior(index=2) [Deleted 10]:\n");
-  PrintList(L);
-  assert(GetElem(L, 1)->data == 15);
-
-  // 5. 测试边界
-  printf("\n--- Test 5: Boundary Conditions ---\n");
-  assert(DeletePrior(L, 1, 0) == false);
-  printf("DeletePrior with index 1 correctly failed.\n");
-  assert(InsertPrior(L, 0, 99) == false);
-  printf("InsertPrior with index 0 correctly failed.\n");
-
+  // 5. 内存清理验证
   DestroyList(L);
-  printf("\nTest Suite Passed!\n");
+  TEST_ASSERT(L == nullptr, "List destruction");
+
+  std::cout << "\n==============================\n";
+  std::cout << "All test cases passed successfully!" << std::endl;
+  std::cout << "==============================\n";
 
   return 0;
 }

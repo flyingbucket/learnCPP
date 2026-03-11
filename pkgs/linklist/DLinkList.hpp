@@ -113,7 +113,7 @@ inline bool InsertPrior(DLinkList &L, uint index, ElemType val) {
 /**
  * @brief L包含头节点，删除第i个数据节点之的前一个节点
  */
-inline bool DeletePrior(DLinkList &L, uint index, ElemType val) {
+inline bool DeletePrior(DLinkList &L, uint index, ElemType &val) {
   if (index < 2) {
     return false;
   }
@@ -127,6 +127,7 @@ inline bool DeletePrior(DLinkList &L, uint index, ElemType val) {
   if (p->next != NULL) {
     p->next->prior = p->prior;
   }
+  val = p->data;
   free(p);
 
   L->data--; // update list length stored in HdadNode data
