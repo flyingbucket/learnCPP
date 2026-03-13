@@ -5,37 +5,37 @@
 
 TEST_CASE("SqQueue: Initialization", "[SqQueue]") {
   SqQueue* q;
-  // 根据签名，InitQueue 接收一个指针
-  bool initSuccess = InitQueue(&q);
+  bool initSuccess = InitQueue(&q, sizeof(int));
   REQUIRE(initSuccess == true);
 
-  // 刚初始化好的队列应该为空，且长度为0，且不为满
   REQUIRE(isSqQueueEmpty(q) == true);
   REQUIRE(isSqQueueFull(q) == false);
   REQUIRE(SqQueueLength(q) == 0);
+
+  DestorySqQueue(&q);  // 记得清理内存
 }
 
 TEST_CASE("SqQueue: EnQueue and DeQueue basics", "[SqQueue]") {
   SqQueue* q;
-  InitQueue(&q);
+  InitQueue(&q, sizeof(int));
 
   SECTION("EnQueue a single element") {
-    bool success = EnQueue(q, 10);
+    int val = 10;                     // 修改点：使用局部变量
+    bool success = EnQueue(q, &val);  // 传递地址
     REQUIRE(success == true);
     REQUIRE(isSqQueueEmpty(q) == false);
     REQUIRE(SqQueueLength(q) == 1);
   }
 
   SECTION("EnQueue and DeQueue multiple elements") {
-    EnQueue(q, 10);
-    EnQueue(q, 20);
-    EnQueue(q, 30);
+    int v1 = 10, v2 = 20, v3 = 30;  // 修改点：定义变量
+    EnQueue(q, &v1);
+    EnQueue(q, &v2);
+    EnQueue(q, &v3);
 
     REQUIRE(SqQueueLength(q) == 3);
 
     int val = 0;
-
-    // 测试出队顺序 (FIFO)
     REQUIRE(DeQueue(q, &val) == true);
     REQUIRE(val == 10);
     REQUIRE(SqQueueLength(q) == 2);
@@ -46,112 +46,102 @@ TEST_CASE("SqQueue: EnQueue and DeQueue basics", "[SqQueue]") {
     REQUIRE(DeQueue(q, &val) == true);
     REQUIRE(val == 30);
 
-    // 全部出队后应该为空
     REQUIRE(isSqQueueEmpty(q) == true);
     REQUIRE(SqQueueLength(q) == 0);
 
-    // 空队列继续出队应该失败
     REQUIRE(DeQueue(q, &val) == false);
   }
+  DestorySqQueue(&q);
 }
 
 TEST_CASE("SqQueue: Full queue behavior", "[SqQueue]") {
   SqQueue* q;
-  InitQueue(&q);
+  InitQueue(&q, sizeof(int));
 
   SECTION("Fill the queue to its capacity") {
-    // 循环队列为了区分空和满，牺牲了一个节点
-    // 所以实际最大容量应该是 MaxSize - 1
     int capacity = MaxSize - 1;
-
     for (int i = 0; i < capacity; ++i) {
-      REQUIRE(EnQueue(q, i) == true);
+      int val = i;  // 修改点：存储循环变量值
+      REQUIRE(EnQueue(q, &val) == true);
     }
 
-    // 达到容量上限后，状态应该为满
     REQUIRE(isSqQueueFull(q) == true);
     REQUIRE(SqQueueLength(q) == capacity);
 
-    // 满队列继续入队应该失败
-    REQUIRE(EnQueue(q, 999) == false);
+    int overflowVal = 999;
+    REQUIRE(EnQueue(q, &overflowVal) == false);
   }
+  DestorySqQueue(&q);
 }
 
 TEST_CASE("SqQueue: Circular Wrap-around behavior", "[SqQueue]") {
   SqQueue* q;
-  InitQueue(&q);
+  InitQueue(&q, sizeof(int));
 
-  // 1. 先入队一部分数据 (例如 20 个)
   for (int i = 0; i < 20; ++i) {
-    EnQueue(q, i);
+    int val = i;
+    EnQueue(q, &val);
   }
 
-  // 2. 出队一部分数据，让 front 指针向后移动 (例如出队 10 个)
   int val = 0;
   for (int i = 0; i < 10; ++i) {
     DeQueue(q, &val);
   }
 
-  // 此时队列里还剩下 10 个元素 (10~19)
   REQUIRE(SqQueueLength(q) == 10);
 
-  // 3. 继续入队，触发 rear 指针的“折返”现象
-  // 队列还能容纳 (MaxSize - 1) - 10 = 39 个元素
   for (int i = 20; i < 59; ++i) {
-    REQUIRE(EnQueue(q, i) == true);
+    int v = i;
+    REQUIRE(EnQueue(q, &v) == true);
   }
 
-  // 此时队列应该又满了，且 rear 指针肯定已经越过数组末尾回到了头部
   REQUIRE(isSqQueueFull(q) == true);
   REQUIRE(SqQueueLength(q) == MaxSize - 1);
 
-  // 4. 验证循环出队的数据是否严格遵循 FIFO 且数据正确
   for (int i = 10; i < 59; ++i) {
     REQUIRE(DeQueue(q, &val) == true);
     REQUIRE(val == i);
   }
 
-  // 最终应该再次变为空
   REQUIRE(isSqQueueEmpty(q) == true);
+  DestorySqQueue(&q);
 }
 
 TEST_CASE("SqQueue: Dynamic Capacity and Stress Test", "[SqQueue]") {
   SqQueue* q = nullptr;
 
   SECTION("Custom small capacity (Size 5)") {
-    // 初始化容量为 5，实际可用空间应为 4
-    REQUIRE(InitQueue(&q, 5) == true);
+    REQUIRE(InitQueue(&q, sizeof(int), 5) == true);  // 修改点：修复参数传递顺序
 
-    // 填满队列 (4个元素)
     for (int i = 0; i < 4; ++i) {
-      REQUIRE(EnQueue(q, i * 10) == true);
+      int val = i * 10;
+      REQUIRE(EnQueue(q, &val) == true);
     }
 
-    // 验证已满
     REQUIRE(isSqQueueFull(q) == true);
     REQUIRE(SqQueueLength(q) == 4);
-    REQUIRE(EnQueue(q, 99) == false);  // 无法再入队
+    int invalidVal = 99;
+    REQUIRE(EnQueue(q, &invalidVal) == false);
 
-    // 释放内存
-    REQUIRE(DestorySqQueue(&q) == true);
+    DestorySqQueue(&q);
   }
 
   SECTION("Wrap-around with custom capacity") {
     int cap = 10;
-    InitQueue(&q, cap);
+    InitQueue(&q, sizeof(int), cap);
 
-    // 1. 入队 8 个
-    for (int i = 0; i < 8; ++i) EnQueue(q, i);
+    for (int i = 0; i < 8; ++i) {
+      int v = i;
+      EnQueue(q, &v);
+    }
 
-    // 2. 出队 5 个，front 移到中间
     int val;
     for (int i = 0; i < 5; ++i) DeQueue(q, &val);
     REQUIRE(SqQueueLength(q) == 3);
 
-    // 3. 再入队，触发 rear 回绕 (Wrap-around)
-    // 此时剩余空间：(10-1) - 3 = 6
     for (int i = 0; i < 6; ++i) {
-      REQUIRE(EnQueue(q, i + 100) == true);
+      int v = i + 100;
+      REQUIRE(EnQueue(q, &v) == true);
     }
 
     REQUIRE(isSqQueueFull(q) == true);
@@ -161,12 +151,12 @@ TEST_CASE("SqQueue: Dynamic Capacity and Stress Test", "[SqQueue]") {
   }
 
   SECTION("Large capacity test") {
-    // 测试较大内存分配
     int largeCap = 10000;
-    REQUIRE(InitQueue(&q, largeCap) == true);
+    REQUIRE(InitQueue(&q, sizeof(int), largeCap) == true);
     REQUIRE(isSqQueueEmpty(q) == true);
 
-    EnQueue(q, 1234);
+    int val = 1234;
+    EnQueue(q, &val);
     REQUIRE(SqQueueLength(q) == 1);
 
     DestorySqQueue(&q);

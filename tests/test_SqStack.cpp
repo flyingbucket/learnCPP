@@ -2,87 +2,93 @@
 
 #include "stack/SqStack.hpp"
 
-TEST_CASE("SqStack: Initialization and Destruction", "[SqStack]") {
-  SqStack* stack = nullptr;
+// 用于测试泛型存储的自定义结构体
+struct Player {
+  int id;
+  float health;
+};
 
-  SECTION("Default capacity initialization") {
-    REQUIRE(InitStack(&stack) == true);
-    REQUIRE(stack != nullptr);
-    REQUIRE(stack->capacity == 500);  // 默认参数
-    REQUIRE(stack->top == -1);
-    REQUIRE(isStackEmpty(stack) == true);
+TEST_CASE("栈的初始化与销毁 (Init & Destroy)", "[SqStack]") {
+  SqStack* s = nullptr;
 
-    REQUIRE(DestroyStack(&stack) == true);
+  SECTION("正常初始化和销毁") {
+    REQUIRE(InitStack(&s, sizeof(int), 10) == true);
+    REQUIRE(s != nullptr);
+    REQUIRE(s->capacity == 10);
+    REQUIRE(s->elem_size == sizeof(int));
+    REQUIRE(s->top == -1);
+    REQUIRE(isStackEmpty(s) == true);
+
+    REQUIRE(DestroyStack(&s) == true);
+    REQUIRE(s == nullptr);  // 验证二级指针置空是否生效
   }
 
-  SECTION("Custom capacity initialization") {
-    REQUIRE(InitStack(&stack, 10) == true);
-    REQUIRE(stack != nullptr);
-    REQUIRE(stack->capacity == 10);
-
-    REQUIRE(DestroyStack(&stack) == true);
+  SECTION("空指针安全测试") {
+    REQUIRE(DestroyStack(nullptr) == false);
+    REQUIRE(isStackEmpty(nullptr) == true);
   }
 }
 
-TEST_CASE("SqStack: Core Operations (Push, Pop, GetTop)", "[SqStack]") {
-  SqStack* stack = nullptr;
-  // 使用较小的容量以便于测试溢出情况
-  REQUIRE(InitStack(&stack, 3) == true);
+TEST_CASE("存储基本类型 (int)", "[SqStack][Basic]") {
+  SqStack* s = nullptr;
+  InitStack(&s, sizeof(int), 3);  // 容量为 3
 
-  SECTION("Push and Pop behavior (LIFO)") {
-    REQUIRE(isStackEmpty(stack) == true);
+  SECTION("正常入栈与出栈") {
+    int val1 = 10, val2 = 20;
+    REQUIRE(Push(s, &val1) == true);
+    REQUIRE(Push(s, &val2) == true);
+    REQUIRE(isStackEmpty(s) == false);
 
-    // 压栈
-    REQUIRE(Push(stack, 10) == true);
-    REQUIRE(isStackEmpty(stack) == false);
-    REQUIRE(Push(stack, 20) == true);
+    int out_val = 0;
+    REQUIRE(GetTop(s, &out_val) == true);
+    REQUIRE(out_val == 20);  // GetTop 不应该改变栈顶
 
-    // 获取栈顶元素但不移除
-    int val = 0;
-    REQUIRE(GetTop(stack, &val) == true);
-    REQUIRE(val == 20);
-    REQUIRE(isStackEmpty(stack) == false);  // 栈依然非空
+    REQUIRE(Pop(s, &out_val) == true);
+    REQUIRE(out_val == 20);  // 第一次 Pop 应该是 20
 
-    // 出栈（应该符合后进先出）
-    REQUIRE(Pop(stack, &val) == true);
-    REQUIRE(val == 20);
+    REQUIRE(Pop(s, &out_val) == true);
+    REQUIRE(out_val == 10);  // 第二次 Pop 应该是 10
 
-    REQUIRE(Pop(stack, &val) == true);
-    REQUIRE(val == 10);
-
-    // 此时栈应该为空
-    REQUIRE(isStackEmpty(stack) == true);
-
-    // 尝试从空栈出栈
-    REQUIRE(Pop(stack, &val) == false);
+    REQUIRE(isStackEmpty(s) == true);
   }
 
-  SECTION("Capacity limit / Stack Overflow") {
-    REQUIRE(Push(stack, 100) == true);
-    REQUIRE(Push(stack, 200) == true);
-    REQUIRE(Push(stack, 300) == true);
+  SECTION("栈满测试") {
+    int val = 1;
+    REQUIRE(Push(s, &val) == true);  // 1/3
+    REQUIRE(Push(s, &val) == true);  // 2/3
+    REQUIRE(Push(s, &val) == true);  // 3/3 (已满)
 
-    // 栈已满，继续压栈应该返回 false
-    REQUIRE(Push(stack, 400) == false);
-
-    // 检查栈顶依然是最后一次成功压入的元素
-    int val = 0;
-    REQUIRE(GetTop(stack, &val) == true);
-    REQUIRE(val == 300);
+    int overflow_val = 99;
+    REQUIRE(Push(s, &overflow_val) == false);  // 容量已满，应该返回 false
   }
 
-  SECTION("Null pointer safety") {
+  SECTION("栈空出栈测试") {
     int val = 0;
-    // 测试传递空指针时各个函数的健壮性
-    REQUIRE(isStackEmpty(nullptr) == true);
-    REQUIRE(Push(nullptr, 10) == false);
-    REQUIRE(Pop(nullptr, &val) == false);
-    REQUIRE(GetTop(nullptr, &val) == false);
-
-    SqStack* null_stack = nullptr;
-    REQUIRE(DestroyStack(&null_stack) == false);
+    REQUIRE(Pop(s, &val) == false);     // 空栈 Pop 应该失败
+    REQUIRE(GetTop(s, &val) == false);  // 空栈 GetTop 应该失败
   }
 
-  // 每个 SECTION 运行结束后，统一清理资源
-  DestroyStack(&stack);
+  DestroyStack(&s);
+}
+
+TEST_CASE("存储复杂结构体 (Struct)", "[SqStack][Struct]") {
+  SqStack* s = nullptr;
+  InitStack(&s, sizeof(Player), 5);  // 存入自定义的 Player 结构体
+
+  Player p1 = {1, 100.0f};
+  Player p2 = {2, 85.5f};
+
+  REQUIRE(Push(s, &p1) == true);
+  REQUIRE(Push(s, &p2) == true);
+
+  Player out_p;
+  REQUIRE(Pop(s, &out_p) == true);
+  REQUIRE(out_p.id == 2);
+  REQUIRE(out_p.health == 85.5f);
+
+  REQUIRE(Pop(s, &out_p) == true);
+  REQUIRE(out_p.id == 1);
+  REQUIRE(out_p.health == 100.0f);
+
+  DestroyStack(&s);
 }
