@@ -1,6 +1,8 @@
 #ifndef INCLUDE_STACK_SHUNTINGYARD_HPP
 #define INCLUDE_STACK_SHUNTINGYARD_HPP
+#include <cctype>
 #include <cstddef>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
@@ -112,63 +114,192 @@ inline size_t infix_to_postfix(const char* infix_expr, char* result_buffer) {
   return i + 1;
 }
 
-inline size_t postfix_to_infix(const char* postfix_expr, char* result_buffer) {
-  int len = 0;
-  int branc_pair = 0;
-  for (int i = 0; postfix_expr[i] != '\0'; i++) len++;
-  SqStack* stack = NULL;
-  bool init_stack_ok = InitStack(&stack, sizeof(char), len);
-  if (!init_stack_ok) exit(1);
-  for (int i = 0; postfix_expr[i] != '\0'; i++) {
-    len++;
-    char sym = postfix_expr[i];
-    int code = _sym_code(sym);
-    char top_sym;
-    bool non_empty = GetTop(stack, &top_sym);
-    if (code == 4 && non_empty && _sym_code(top_sym) == 3) {
-      branc_pair += 1;
+// 获取运算符优先级
+// 99: 操作数 (最高)
+// 3: *, /, %
+// 1: +, -
+// 0: 未知/无效
+inline int _get_prec(char sym) {
+  if (isalnum(sym)) return 99;  // 操作数优先级最高
+
+  static int table[256] = {0};
+  static int initialized = 0;
+  if (!initialized) {
+    table['+'] = 1;
+    table['-'] = 1;
+    table['*'] = 3;
+    table['/'] = 3;
+    table['%'] = 3;
+    initialized = 1;
+  }
+  return table[(unsigned char)sym];
+}
+
+// 检查是否为非结合性运算符 (右侧同级需要加括号)
+inline int _is_non_associative(char sym) {
+  return (sym == '-' || sym == '/' || sym == '%');
+}
+
+// Pass 1 用的虚拟节点（只存数值，不存字符串）
+typedef struct {
+  size_t len;  // 字符串长度 (不含 \0)
+  int prec;    // 优先级
+} VirtualNode;
+
+// Pass 2 用的真实节点
+typedef struct {
+  char* expr;  // 实际字符串
+  int prec;    // 优先级
+} RealNode;
+
+// --- 核心函数 ---
+
+// 辅助：计算逻辑（Pass 1）
+inline size_t _calculate_len(const char* postfix) {
+  size_t n = strlen(postfix);
+  VirtualNode* stack = (VirtualNode*)malloc(sizeof(VirtualNode) * n);
+  int top = -1;
+
+  for (int i = 0; postfix[i] != '\0'; i++) {
+    char sym = postfix[i];
+
+    if (isspace(sym)) continue;
+
+    if (isalnum(sym)) {
+      // 操作数：长度为1，优先级99
+      top++;
+      stack[top].len = 1;
+      stack[top].prec = 99;
+    } else {
+      // 操作符
+      if (top < 1) {
+        free(stack);
+        return 0;
+      }  // 错误：栈中元素不足
+
+      VirtualNode r = stack[top--];
+      VirtualNode l = stack[top--];
+
+      int curr_prec = _get_prec(sym);
+
+      // 判断括号
+      int l_parens = (l.prec < curr_prec);
+      int r_parens = (r.prec < curr_prec) ||
+                     (r.prec == curr_prec && _is_non_associative(sym));
+
+      // 计算新长度: (左) + 1(符号) + (右) + 括号
+      size_t new_len = l.len + 1 + r.len + 2 * (l_parens + r_parens);
+
+      // 入栈
+      top++;
+      stack[top].len = new_len;
+      stack[top].prec = curr_prec;
     }
-    if (code >= 3) Push(stack, &sym);
   }
 
-  int valid_len = len + branc_pair * 2 + 1;
-  if (result_buffer == NULL) return valid_len;
-
-  while (!isStackEmpty(stack)) {
-    char tmp;
-    Pop(stack, &tmp);
+  size_t result = 0;
+  if (top == 0) {
+    result = stack[0].len;
   }
 
-  SqQueue* res_queue = NULL;
-  bool init_res_queue_ok = InitQueue(&res_queue, sizeof(char), valid_len);
-  SqQueue* tmp_queue = NULL;
-  bool init_tmp_queue_ok = InitQueue(&tmp_queue, sizeof(char), valid_len);
-  if (!init_res_queue_ok || !init_tmp_queue_ok) exit(1);
+  free(stack);
+  return result + 1;  // \0
+}
 
-  for (int i = 0; postfix_expr[i] != '\0'; i++) {
-    char sym = postfix_expr[i];
-    int code = _sym_code(sym);
-    switch (code) {
-      case -1:
-      case 1:
-      case 2:
-        break;
+// 辅助：构建逻辑（Pass 2）
+size_t _build_string(const char* postfix, char* result_buff) {
+  size_t n = strlen(postfix);
+  RealNode* stack = (RealNode*)malloc(sizeof(RealNode) * n);
+  int top = -1;
 
-      case 0: {
-        EnQueue(tmp_queue, &sym);
-        break;
-      }
+  for (int i = 0; postfix[i] != '\0'; i++) {
+    char sym = postfix[i];
 
-      case 3: {
-        Push(stack, &sym);
-        break;
-      }
-      case 4: {
-        char top;
-        bool stack_not_empty = GetTop(stack, &top);
-      }
+    if (isspace(sym)) continue;
+
+    if (isalnum(sym)) {
+      // 操作数
+      top++;
+      stack[top].expr = (char*)malloc(2);  // 1 char + \0
+      stack[top].expr[0] = sym;
+      stack[top].expr[1] = '\0';
+      stack[top].prec = 99;
+    } else {
+      // 操作符
+      if (top < 1) {
+        while (top >= 0) free(stack[top--].expr);
+        free(stack);
+        return 0;
+      }  // 错误清理
+
+      RealNode r = stack[top--];
+      RealNode l = stack[top--];
+
+      int curr_prec = _get_prec(sym);
+
+      int l_parens = (l.prec < curr_prec);
+      int r_parens = (r.prec < curr_prec) ||
+                     (r.prec == curr_prec && _is_non_associative(sym));
+
+      // 计算所需内存
+      size_t needed_size = strlen(l.expr) + strlen(r.expr) + 2 +
+                           (l_parens ? 2 : 0) + (r_parens ? 2 : 0);
+
+      char* new_str = (char*)malloc(needed_size);
+
+      // 格式化字符串: (L) OP (R)
+      char* ptr = new_str;
+
+      // 左部分
+      if (l_parens) *ptr++ = '(';
+      strcpy(ptr, l.expr);
+      ptr += strlen(l.expr);
+      if (l_parens) *ptr++ = ')';
+
+      // 中间
+      *ptr++ = sym;
+
+      // 右部分
+      if (r_parens) *ptr++ = '(';
+      strcpy(ptr, r.expr);
+      ptr += strlen(r.expr);
+      if (r_parens) *ptr++ = ')';
+
+      *ptr = '\0';
+
+      // 释放旧内存
+      free(l.expr);
+      free(r.expr);
+
+      // 入栈
+      top++;
+      stack[top].expr = new_str;
+      stack[top].prec = curr_prec;
     }
   }
+
+  size_t total_written = 0;
+  if (top == 0) {
+    strcpy(result_buff, stack[0].expr);
+    total_written = strlen(stack[0].expr);
+    free(stack[0].expr);
+  } else {
+    // 异常情况：栈没空或者为空，清理内存
+    while (top >= 0) free(stack[top--].expr);
+  }
+
+  free(stack);
+  return total_written + 1;
+}
+
+inline size_t postfix_to_infix(const char* postfix_expr, char* result_buff) {
+  if (postfix_expr == NULL) return 0;
+
+  if (result_buff == NULL) {
+    return _calculate_len(postfix_expr);
+  }
+
+  return _build_string(postfix_expr, result_buff);
 }
 
 #endif  // !INCLUDE_STACK_SHUNTINGYARD_HPP
