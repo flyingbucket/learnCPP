@@ -1,10 +1,11 @@
 #ifndef INCLUDE_STACK_SHUNTINGYARD_HPP
 #define INCLUDE_STACK_SHUNTINGYARD_HPP
+#include <cstddef>
 #include <cstdlib>
 #include <cstring>
-#include <stack/SqStack.hpp>
 
 #include "queue/SqQueue.hpp"
+#include "stack/SqStack.hpp"
 
 inline int _sym_code(char sym) {
   static int table[256] = {0};
@@ -25,9 +26,7 @@ inline int _sym_code(char sym) {
   return table[(unsigned char)sym];
 }
 
-// 建议使用指针来处理字符数组
-// 返回值：一个动态分配的字符串，包含后缀表达式
-inline char* infix_to_postfix(const char* infix_expr) {
+inline size_t infix_to_postfix(const char* infix_expr, char* result_buffer) {
   int len = 0;
   int valid_len = 0;
   for (int i = 0; infix_expr[i] != '\0'; i++) {
@@ -38,11 +37,16 @@ inline char* infix_to_postfix(const char* infix_expr) {
       valid_len++;
     }
   }
+  valid_len++;  // add place for '\0'
+
+  if (result_buffer == NULL) {
+    return valid_len;
+  }
 
   SqStack* sym_stack = NULL;
   bool init_sym_ok = InitStack(&sym_stack, sizeof(char), len);
   SqQueue* res_queue = NULL;
-  bool init_res_ok = InitQueue(&res_queue, sizeof(char), valid_len + 1);
+  bool init_res_ok = InitQueue(&res_queue, sizeof(char), valid_len);
   if (!(init_res_ok && init_sym_ok)) {
     exit(1);
   }
@@ -96,20 +100,75 @@ inline char* infix_to_postfix(const char* infix_expr) {
     }
   }
 
-  char* result = (char*)malloc(sizeof(char) * (valid_len + 1));
+  // char* result = (char*)malloc(sizeof(char) * (valid_len + 1));
   int i = 0;
   while (!isSqQueueEmpty(res_queue)) {
-    DeQueue(res_queue, &result[i]);  // 直接写入
+    DeQueue(res_queue, &result_buffer[i]);  // 直接写入
     i++;
   }
-  result[i] = '\0';  // 必须添加字符串结束符！
+  result_buffer[i] = '\0';  // 必须添加字符串结束符！
   DestroyStack(&sym_stack);
   DestorySqQueue(&res_queue);
-  return result;
+  return i + 1;
 }
 
-// 建议使用二级指针或栈结构来存储子表达式
-// 每一个栈元素都是一个完整的字符串
-inline void postfix_to_infix(const char* postfix_expr, char* result_buffer);
+inline size_t postfix_to_infix(const char* postfix_expr, char* result_buffer) {
+  int len = 0;
+  int branc_pair = 0;
+  for (int i = 0; postfix_expr[i] != '\0'; i++) len++;
+  SqStack* stack = NULL;
+  bool init_stack_ok = InitStack(&stack, sizeof(char), len);
+  if (!init_stack_ok) exit(1);
+  for (int i = 0; postfix_expr[i] != '\0'; i++) {
+    len++;
+    char sym = postfix_expr[i];
+    int code = _sym_code(sym);
+    char top_sym;
+    bool non_empty = GetTop(stack, &top_sym);
+    if (code == 4 && non_empty && _sym_code(top_sym) == 3) {
+      branc_pair += 1;
+    }
+    if (code >= 3) Push(stack, &sym);
+  }
+
+  int valid_len = len + branc_pair * 2 + 1;
+  if (result_buffer == NULL) return valid_len;
+
+  while (!isStackEmpty(stack)) {
+    char tmp;
+    Pop(stack, &tmp);
+  }
+
+  SqQueue* res_queue = NULL;
+  bool init_res_queue_ok = InitQueue(&res_queue, sizeof(char), valid_len);
+  SqQueue* tmp_queue = NULL;
+  bool init_tmp_queue_ok = InitQueue(&tmp_queue, sizeof(char), valid_len);
+  if (!init_res_queue_ok || !init_tmp_queue_ok) exit(1);
+
+  for (int i = 0; postfix_expr[i] != '\0'; i++) {
+    char sym = postfix_expr[i];
+    int code = _sym_code(sym);
+    switch (code) {
+      case -1:
+      case 1:
+      case 2:
+        break;
+
+      case 0: {
+        EnQueue(tmp_queue, &sym);
+        break;
+      }
+
+      case 3: {
+        Push(stack, &sym);
+        break;
+      }
+      case 4: {
+        char top;
+        bool stack_not_empty = GetTop(stack, &top);
+      }
+    }
+  }
+}
 
 #endif  // !INCLUDE_STACK_SHUNTINGYARD_HPP
