@@ -34,7 +34,7 @@ inline char* infix_to_postfix(const char* infix_expr) {
     char sym = infix_expr[i];
     int t_code = _sym_code(sym);
     len++;
-    if (t_code == 0 || t_code == 1 || t_code == 2) {
+    if (t_code == 0 || t_code == 3 || t_code == 4) {
       valid_len++;
     }
   }
@@ -42,7 +42,7 @@ inline char* infix_to_postfix(const char* infix_expr) {
   SqStack* sym_stack = NULL;
   bool init_sym_ok = InitStack(&sym_stack, sizeof(char), len);
   SqQueue* res_queue = NULL;
-  bool init_res_ok = InitQueue(&res_queue, sizeof(char), valid_len);
+  bool init_res_ok = InitQueue(&res_queue, sizeof(char), valid_len + 1);
   if (!(init_res_ok && init_sym_ok)) {
     exit(1);
   }
@@ -67,7 +67,8 @@ inline char* infix_to_postfix(const char* infix_expr) {
 
       case 2: {
         char tmp = sym;
-        while (Pop(sym_stack, &tmp) || _sym_code(tmp) > 1) {
+        while (GetTop(sym_stack, &tmp) && _sym_code(tmp) > 1) {
+          Pop(sym_stack, &tmp);
           EnQueue(res_queue, &tmp);
         }
         Pop(sym_stack, &tmp);
@@ -82,10 +83,19 @@ inline char* infix_to_postfix(const char* infix_expr) {
           Pop(sym_stack, &top_sym);
           EnQueue(res_queue, &top_sym);
         }
+        Push(sym_stack, &sym);
         break;
       }
     }
   }
+
+  char top_sym;
+  while (Pop(sym_stack, &top_sym)) {
+    if (_sym_code(top_sym) > 2) {
+      EnQueue(res_queue, &top_sym);
+    }
+  }
+
   char* result = (char*)malloc(sizeof(char) * (valid_len + 1));
   int i = 0;
   while (!isSqQueueEmpty(res_queue)) {
