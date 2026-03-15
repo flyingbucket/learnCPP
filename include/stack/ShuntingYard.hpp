@@ -207,7 +207,7 @@ inline size_t _calculate_len(const char* postfix) {
 }
 
 // 辅助：构建逻辑（Pass 2）
-size_t _build_string(const char* postfix, char* result_buff) {
+inline size_t _build_string(const char* postfix, char* result_buff) {
   size_t n = strlen(postfix);
   RealNode* stack = (RealNode*)malloc(sizeof(RealNode) * n);
   int top = -1;
