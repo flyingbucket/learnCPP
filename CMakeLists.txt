@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16+)
-project(learnCPP)
+project(learnAlgorithm)
 
 # ==speed-up==
 # mold linker
