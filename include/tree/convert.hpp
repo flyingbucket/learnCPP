@@ -2,20 +2,22 @@
 #define INCLUDE_TREE_CONVERT_HPP
 #include <cstddef>
 #include <cstdlib>
+#include <cstring>
 
 #include "tree/BinaryTree.hpp"
 
 typedef struct GeneralTree {
-  void* data;
   struct GeneralTree** childs;
   int childs_count;
   int childs_capacity;
+  size_t elem_size;
+  char data[];
 } GeneralTree;
 
 inline BiTreeLi GeneralTree2BiTree(GeneralTree* tree) {
   if (tree == NULL) return NULL;
-  Node* bin_node = (Node*)malloc(sizeof(Node));
-  bin_node->data = tree->data;
+  Node* bin_node = (Node*)malloc(sizeof(Node) + tree->elem_size);
+  memcpy(bin_node->data, tree->data, tree->elem_size);
   bin_node->l = NULL;
   bin_node->r = NULL;
 

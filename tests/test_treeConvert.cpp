@@ -1,18 +1,27 @@
 #include <catch2/catch.hpp>
+#include <cstring>  // 必须包含以使用 memcpy
 
 #include "tree/convert.hpp"  // 包含你的头文件
 
-// --- 辅助函数：创建一般树节点 ---
-GeneralTree* create_gen_node(void* data) {
-  GeneralTree* node = (GeneralTree*)malloc(sizeof(GeneralTree));
-  node->data = data;
+// --- 辅助函数：创建一般树节点（已适配柔性数组） ---
+GeneralTree* create_gen_node(void* data, size_t elem_size) {
+  // 核心改变 1：一次性分配 结构体本身大小 + 数据大小
+  GeneralTree* node = (GeneralTree*)malloc(sizeof(GeneralTree) + elem_size);
+
   node->childs = NULL;
   node->childs_count = 0;
   node->childs_capacity = 0;
+  node->elem_size = elem_size;  // 记录元素大小，给转换函数用
+
+  // 核心改变 2：使用 memcpy 将数据拷贝到柔性数组区域
+  if (data != NULL) {
+    memcpy(node->data, data, elem_size);
+  }
+
   return node;
 }
 
-// --- 辅助函数：为一般树添加子节点 ---
+// --- 辅助函数：为一般树添加子节点（无需改变） ---
 void add_child(GeneralTree* parent, GeneralTree* child) {
   if (parent->childs_count == parent->childs_capacity) {
     parent->childs_capacity =
@@ -23,28 +32,30 @@ void add_child(GeneralTree* parent, GeneralTree* child) {
   parent->childs[parent->childs_count++] = child;
 }
 
-// --- 辅助函数：释放内存，防止测试内存泄漏 ---
+// --- 辅助函数：释放内存（适配柔性数组，只需 free 一次） ---
 void free_gen_tree(GeneralTree* root) {
   if (!root) return;
   for (int i = 0; i < root->childs_count; ++i) {
     free_gen_tree(root->childs[i]);
   }
   free(root->childs);
-  free(root);
+  free(root);  // 连同后接的柔性数组数据一起释放了
 }
 
 void free_bi_tree(Node* root) {
   if (!root) return;
   free_bi_tree(root->l);
   free_bi_tree(root->r);
-  free(root);
+  free(root);  // 连同后接的柔性数组数据一起释放了
 }
 
 // ---------------- 测试用例 ----------------
 
-TEST_CASE("GeneralTree to BinaryTree Conversion", "[tree][convert]") {
+TEST_CASE("GeneralTree to BinaryTree Conversion (Flexible Array Version)",
+          "[tree][convert]") {
   // 准备测试数据
   int d[] = {0, 1, 2, 3, 4, 5, 6};
+  size_t int_size = sizeof(int);  // 提取 size_t 方便传参
 
   SECTION("空树转换") {
     BiTreeLi bi_root = GeneralTree2BiTree(NULL);
@@ -52,11 +63,13 @@ TEST_CASE("GeneralTree to BinaryTree Conversion", "[tree][convert]") {
   }
 
   SECTION("只有根节点的树") {
-    GeneralTree* gen_root = create_gen_node(&d[1]);
+    // 传入 sizeof(int)
+    GeneralTree* gen_root = create_gen_node(&d[1], int_size);
 
     BiTreeLi bi_root = GeneralTree2BiTree(gen_root);
 
     REQUIRE(bi_root != NULL);
+    // 语法依然适用：bi_root->data 退化为 char*，强转为 int* 后取值
     REQUIRE(*(int*)(bi_root->data) == 1);
     REQUIRE(bi_root->l == NULL);
     REQUIRE(bi_root->r == NULL);
@@ -70,10 +83,10 @@ TEST_CASE("GeneralTree to BinaryTree Conversion", "[tree][convert]") {
     //    1
     //  / | \
     // 2  3  4
-    GeneralTree* gen_root = create_gen_node(&d[1]);
-    add_child(gen_root, create_gen_node(&d[2]));
-    add_child(gen_root, create_gen_node(&d[3]));
-    add_child(gen_root, create_gen_node(&d[4]));
+    GeneralTree* gen_root = create_gen_node(&d[1], int_size);
+    add_child(gen_root, create_gen_node(&d[2], int_size));
+    add_child(gen_root, create_gen_node(&d[3], int_size));
+    add_child(gen_root, create_gen_node(&d[4], int_size));
 
     BiTreeLi bi_root = GeneralTree2BiTree(gen_root);
 
@@ -115,13 +128,13 @@ TEST_CASE("GeneralTree to BinaryTree Conversion", "[tree][convert]") {
     //    2  3  4
     //      / \
     //     5   6
-    GeneralTree* gen_root = create_gen_node(&d[1]);
+    GeneralTree* gen_root = create_gen_node(&d[1], int_size);
 
-    GeneralTree* n2 = create_gen_node(&d[2]);
-    GeneralTree* n3 = create_gen_node(&d[3]);
-    GeneralTree* n4 = create_gen_node(&d[4]);
-    GeneralTree* n5 = create_gen_node(&d[5]);
-    GeneralTree* n6 = create_gen_node(&d[6]);
+    GeneralTree* n2 = create_gen_node(&d[2], int_size);
+    GeneralTree* n3 = create_gen_node(&d[3], int_size);
+    GeneralTree* n4 = create_gen_node(&d[4], int_size);
+    GeneralTree* n5 = create_gen_node(&d[5], int_size);
+    GeneralTree* n6 = create_gen_node(&d[6], int_size);
 
     add_child(gen_root, n2);
     add_child(gen_root, n3);

@@ -15,9 +15,9 @@ typedef struct {
 } BiTreeArr;
 
 typedef struct Node {
-  void* data;
   Node* l;
   Node* r;
+  char data[];
 } Node, *BiTreeLi;
 
 typedef struct {
@@ -58,18 +58,18 @@ inline void LevelOrder(void* tree, void* root_handle, TreeOps ops,
 
   SqQueue* que = NULL;
   InitQueue(&que, sizeof(void*));
-  EnQueue(que, &root_handle);
+  EnQueue(que, (const void*)&root_handle);
   while (!isSqQueueEmpty(que)) {
     void* head = NULL;
-    DeQueue(que, &head);
+    DeQueue(que, (void*)&head);
     visit(tree, head);
     void* left = ops.get_left(tree, head);
     if (ops.is_valid(tree, left)) {
-      EnQueue(que, &left);
+      EnQueue(que, (const void*)&left);
     }
     void* right = ops.get_right(tree, head);
     if (ops.is_valid(tree, right)) {
-      EnQueue(que, &right);
+      EnQueue(que, (const void*)&right);
     }
   }
   DestorySqQueue(&que);
@@ -81,11 +81,10 @@ inline void DestroyBiTreeLi(Node* node) {
   if (node == NULL) return;
   DestroyBiTreeLi(node->l);
   DestroyBiTreeLi(node->r);
-  free(node->data);
   free(node);
 }
 
-inline void* _get_rootptr(void* root, void* vec, size_t elem_size, uint len) {
+inline void* get_rootptr_(void* root, void* vec, size_t elem_size, uint len) {
   char* base = (char*)vec;
   for (uint i = 0; i < len; i++) {
     char* curr = base + i * elem_size;
@@ -96,19 +95,13 @@ inline void* _get_rootptr(void* root, void* vec, size_t elem_size, uint len) {
   return NULL;
 }
 
-inline BiTreeLi _fromPreAndInOrderHelper(void* pre, void* in, size_t elem_size,
+inline BiTreeLi fromPreAndInOrderHelper_(void* pre, void* in, size_t elem_size,
                                          uint len, int* err) {
   if (*err != TREE_OK) return NULL;
   if (len == 0) return NULL;
 
-  Node* rootNode = (Node*)malloc(sizeof(Node));
+  Node* rootNode = (Node*)malloc(sizeof(Node) + elem_size);
   if (rootNode == NULL) {
-    *err = TREE_ERR_MALLOC;
-    return NULL;
-  }
-  rootNode->data = malloc(elem_size);
-  if (rootNode->data == NULL) {
-    free(rootNode);
     *err = TREE_ERR_MALLOC;
     return NULL;
   }
@@ -116,10 +109,9 @@ inline BiTreeLi _fromPreAndInOrderHelper(void* pre, void* in, size_t elem_size,
   rootNode->l = NULL;
   rootNode->r = NULL;
 
-  void* root_in_in = _get_rootptr(pre, in, elem_size, len);
+  void* root_in_in = get_rootptr_(pre, in, elem_size, len);
   if (root_in_in == NULL) {
     *err = TREE_ERR_INVALID_INPUT;
-    free(rootNode->data);
     free(rootNode);
     return NULL;
   }
@@ -133,17 +125,15 @@ inline BiTreeLi _fromPreAndInOrderHelper(void* pre, void* in, size_t elem_size,
   void* right_pre = (void*)((char*)pre + (left_len + 1) * elem_size);
 
   BiTreeLi left_tree =
-      _fromPreAndInOrderHelper(left_pre, in, elem_size, left_len, err);
+      fromPreAndInOrderHelper_(left_pre, in, elem_size, left_len, err);
   if (*err != TREE_OK) {
-    free(rootNode->data);
     free(rootNode);
     return NULL;
   }
-  BiTreeLi right_tree = _fromPreAndInOrderHelper(right_pre, right_in_in,
+  BiTreeLi right_tree = fromPreAndInOrderHelper_(right_pre, right_in_in,
                                                  elem_size, right_len, err);
   if (*err != TREE_OK) {
     DestroyBiTreeLi(rootNode->l);
-    free(rootNode->data);
     free(rootNode);
     return NULL;
   }
@@ -156,7 +146,7 @@ inline BiTreeLi _fromPreAndInOrderHelper(void* pre, void* in, size_t elem_size,
 inline BiTreeLi fromPreAndInOrder(void* pre, void* in, size_t elem_size,
                                   uint len) {
   int err = TREE_OK;
-  BiTreeLi root = _fromPreAndInOrderHelper(pre, in, elem_size, len, &err);
+  BiTreeLi root = fromPreAndInOrderHelper_(pre, in, elem_size, len, &err);
 
   if (err != TREE_OK) {
     fprintf(stderr, "[ERROR] fromPreAndInOrder Failed! Error Code: %d\n", err);
