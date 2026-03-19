@@ -1,2 +1,16 @@
 CompileFlags:
   CompilationDatabase: build/
+  Add: [-Wall, -Wextra, -Wshadow]
+
+Diagnostics:
+  ClangTidy:
+    Add:
+      - bugprone-* # 逻辑Bug（如越界、死循环、位运算错误）
+      - clang-analyzer-* # 内存Bug（如空指针解引用、内存泄漏、无效free）
+    Remove:
+      - modernize-*
+      - performance-*
+      - cppcoreguidelines-*
+      - google-*
+      - bugprone-narrowing-conversions
+      - bugprone-easily-swappable-parameters
