@@ -82,6 +82,14 @@ inline bool DeQueue(SqQueue* q, void* val) {
   return true;
 }
 
+inline bool GetFront(SqQueue* q, void* val) {
+  if (isSqQueueEmpty(q)) {
+    return false;
+  }
+  void* source = (char*)q->data + (q->front * q->elem_size);
+  memcpy(val, source, q->elem_size);
+  return true;
+}
 inline int SqQueueLength(SqQueue* q) {
   int capacity = q->capacity;
   return (q->rear - q->front + capacity) % capacity;
@@ -91,7 +99,6 @@ inline bool DestorySqQueue(SqQueue** q) {
   if (q == NULL || *q == NULL || (*q)->data == NULL) {
     return false;
   }
-  free((*q)->data);
   free(*q);
   *q = NULL;
   return true;
