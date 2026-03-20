@@ -39,7 +39,6 @@ clean:
     rm -rf {{build_dir}}
     @echo "Build directory removed."
 
-symbolizer := `which llvm-symbolizer || which llvm-symbolizer-21`
 
 # 编译并运行特定 target (依赖 setup，确保环境就绪)
 p target: setup
