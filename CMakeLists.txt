@@ -47,6 +47,8 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # == basic config==
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -57,6 +59,33 @@ include_directories(
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+# ==src==
+macro(add_src_library target_name src_root)
+    file(GLOB_RECURSE C_SOURCES   "${src_root}/*.c")
+    file(GLOB_RECURSE CXX_SOURCES "${src_root}/*.cpp")
+
+    # 合并 C 和 C++ 源
+    set(ALL_SOURCES ${C_SOURCES} ${CXX_SOURCES})
+
+    if(ALL_SOURCES)
+        add_library(${target_name} STATIC ${ALL_SOURCES})
+
+        # 让这个库能访问你的公共头文件
+        target_include_directories(${target_name} PUBLIC
+            ${CMAKE_CURRENT_SOURCE_DIR}/include
+            ${CMAKE_CURRENT_SOURCE_DIR}/third_party
+        )
+
+        message(STATUS "Created library '${target_name}' with sources:")
+        foreach(src ${ALL_SOURCES})
+            message(STATUS "  - ${src}")
+        endforeach()
+    else()
+        message(WARNING "No sources found in ${src_root} for target ${target_name}")
+    endif()
+endmacro()
+
+add_src_library(impl_algo ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # ==examples==
 macro(add_dir_targets directory_path)
@@ -65,13 +94,13 @@ macro(add_dir_targets directory_path)
         get_filename_component(target_name ${src_file} NAME_WE)
         if(NOT TARGET ${target_name}) # 防止重复定义
             add_executable(${target_name} ${src_file})
+            target_link_libraries(${target_name} PRIVATE impl_algo)
             message(STATUS "Registered target: ${target_name}")
         endif()
     endforeach()
 endmacro()
 
 add_dir_targets(${CMAKE_CURRENT_SOURCE_DIR}/examples)
-
 
 # ==tests==
 enable_testing()
@@ -88,7 +117,7 @@ foreach(test_src ${TEST_SOURCES})
     # 排除 test_main 本身，避免把它自己注册成一个测试
     if(NOT ${test_name} STREQUAL "test_main")
         add_executable(${test_name} ${test_src})
-        target_link_libraries(${test_name} PRIVATE catch2_main)
+        target_link_libraries(${test_name} PRIVATE catch2_main impl_algo)
         set_target_properties(${test_name} PROPERTIES BUILD_RPATH "$ORIGIN")
         add_test(NAME ${test_name} COMMAND ${test_name})
         message(STATUS "Speed-optimized target: ${test_name}")
