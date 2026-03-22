@@ -3,8 +3,8 @@
 #include <cstddef>
 #include <cstdlib>
 
+#include "BinaryTree.hpp"
 #include "queue/SqQueue.hpp"
-#include "tree/BinaryTree.hpp"
 
 inline int compare_ints_asc_(const void* a, const void* b) {
   int val_a = *(const int*)a;

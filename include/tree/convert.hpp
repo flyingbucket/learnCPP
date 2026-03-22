@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "tree/BinaryTree.hpp"
+#include "BinaryTree.hpp"
 
 typedef struct GeneralTree {
   struct GeneralTree** childs;

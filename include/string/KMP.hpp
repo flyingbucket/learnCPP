@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "string/basicOps.hpp"
+#include "basicOps.hpp"
 
 inline void get_next_dummy(String* P, int next[]) {
   next[0] = -1;

@@ -2,7 +2,7 @@
 #define INCLUDE_TREE_INPLBITREE_HPP
 #include <cstdint>
 
-#include "tree/BinaryTree.hpp"
+#include "BinaryTree.hpp"
 
 inline int li_is_valid(void* tree, void* node) { return node != NULL; }
 inline void* li_get_left(void* ctx, void* node) { return ((Node*)node)->l; }
