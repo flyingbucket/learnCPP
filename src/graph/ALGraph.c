@@ -36,7 +36,7 @@ GraphInfoOps const ALGRAPH_IOPS = {
 static bool adjacent(void* G, VertexId v1, VertexId v2) {
   if (G == NULL) return false;
   ALGraph* g = (ALGraph*)G;
-  if (!g->bg->iops->valid_vertex(G, v1) || !g->bg->iops->valid_vertex(G, v2) ||
+  if (!g->bg.iops->valid_vertex(G, v1) || !g->bg.iops->valid_vertex(G, v2) ||
       v1 == v2)
     return false;
   bool found = false;
@@ -51,7 +51,7 @@ static bool adjacent(void* G, VertexId v1, VertexId v2) {
   return found;
 }
 static int first_neighbor(void* G, VertexId v) {
-  if (G == NULL) return NULL;
+  if (G == NULL) return -1;
   ALGraph* g = (ALGraph*)G;
   for (int i = 0; i < g->n_vert; i++) {
     if (g->verts[i].id == v) {
@@ -63,14 +63,14 @@ static int first_neighbor(void* G, VertexId v) {
 static int next_neighbor(void* G, VertexId v, VertexId w) {
   if (G == NULL) return -1;
   ALGraph* g = (ALGraph*)G;
-  if (!g->bg->iops->valid_vertex(G, v) || !g->bg->iops->valid_vertex(G, w)) {
+  if (!g->bg.iops->valid_vertex(G, v) || !g->bg.iops->valid_vertex(G, w)) {
     return -1;
   }
   ENode* edge_v = g->verts[v].firstarc;
   while (edge_v != NULL && edge_v->adjvex != w) {
     edge_v = edge_v->nextarc;
   }
-  if (edge_v == NULL) return -1;
+  if (edge_v == NULL || edge_v->nextarc == NULL) return -1;
   return edge_v->nextarc->adjvex;
 }
 GraphQueryOps const ALGRAPH_QOPS = {
@@ -107,12 +107,7 @@ static inline void free_edges(ALGraph* g, VertexId v) {
     while (curr != NULL) {
       bool should_free = false;
 
-      // 情况1：当前顶点就是被删顶点，释放它发出的所有边
-      if (i == v) {
-        should_free = true;
-      }
-      // 情况2：这条边指向被删顶点
-      else if (curr->adjvex == v) {
+      if (i == v || curr->adjvex == v) {
         should_free = true;
       }
 
@@ -128,7 +123,7 @@ static inline void free_edges(ALGraph* g, VertexId v) {
         free(tmp);
         g->n_edge--;
       } else {
-        // 关键修正：如果这条边指向的顶点索引在 v 之后，且我们要进行数组前移
+        // 如果这条边指向的顶点索引在 v 之后，且我们要进行数组前移
         // 那么这条边的目标索引必须减 1 才能指向正确的“新位置”
         if (curr->adjvex > v) {
           curr->adjvex--;
@@ -252,16 +247,10 @@ ALGraph* algraph_create(int n_vert, int n_edge) {
   ALGraph* g = (ALGraph*)malloc(sizeof(ALGraph));
   if (!g) return NULL;
 
-  // 2. 分配 BaseGraph (Trait 容器) 内存并绑定静态 Ops
-  g->bg = (BaseGraph*)malloc(sizeof(BaseGraph));
-  if (!g->bg) {
-    free(g);
-    return NULL;
-  }
-  g->bg->iops = &ALGRAPH_IOPS;
-  g->bg->qops = &ALGRAPH_QOPS;
-  g->bg->mops = &ALGRAPH_MOPS;
-  g->bg->wops = &ALGRAPH_WOPS;
+  g->bg.iops = &ALGRAPH_IOPS;
+  g->bg.qops = &ALGRAPH_QOPS;
+  g->bg.mops = &ALGRAPH_MOPS;
+  g->bg.wops = &ALGRAPH_WOPS;
 
   // 3. 初始化基本计数
   g->n_vert = 0;
@@ -273,7 +262,6 @@ ALGraph* algraph_create(int n_vert, int n_edge) {
   g->verts = (VNode*)malloc(g->vert_capacity * sizeof(VNode));
 
   if (!g->verts) {
-    free(g->bg);
     free(g);
     return NULL;
   }
@@ -301,16 +289,9 @@ void algraph_destroy(ALGraph* g) {
     }
   }
 
-  // 2. 释放顶点数组
   if (g->verts != NULL) {
     free(g->verts);
   }
 
-  // 3. 释放 Trait 容器
-  if (g->bg != NULL) {
-    free(g->bg);
-  }
-
-  // 4. 最后释放图对象本身
   free(g);
 }

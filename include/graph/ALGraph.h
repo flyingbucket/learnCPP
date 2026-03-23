@@ -4,9 +4,9 @@
 
 #include "GraphOps.h"
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
-#endif  // _cplusplus
+#endif  // __cplusplus
 
 struct VNode;
 struct ENode;
@@ -24,7 +24,7 @@ typedef struct ENode {
 } ENode;
 
 typedef struct {
-  BaseGraph* bg;
+  BaseGraph bg;
   AdjList verts;
   int n_vert, n_edge;
   int vert_capacity;
@@ -33,7 +33,7 @@ typedef struct {
 ALGraph* algraph_create(int n_vert, int n_edge);
 void algraph_destroy(ALGraph* G);
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 }
-#endif  // _cplusplus
+#endif  // __cplusplus
 #endif  // !INCLUDE_GRAPH_ALGRAPH_H

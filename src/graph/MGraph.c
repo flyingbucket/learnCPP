@@ -32,7 +32,7 @@ static const GraphInfoOps MGRAPH_IOPS = {
 static bool m_adjacent(void* G, VertexId v1, VertexId v2) {
   MGraph* g = (MGraph*)G;
   int n = g->n_verts;
-  int (*adj)[n] = (int (*)[n])g->adj;
+  Weight(*adj)[n] = (Weight(*)[n])g->adj;
   return adj[v1][v2] != 0;
 }
 static int m_first_neighbor(void* G, VertexId v) {
@@ -72,7 +72,8 @@ static bool m_delete_vert(void* G, VertexId v) {
 static bool m_add_edge(void* G, VertexId v1, VertexId v2, Weight w) {
   MGraph* g = (MGraph*)G;
   int n = g->n_verts;
-  if (v1 > 0 && v2 > 0 && v1 != v2 && v1 * n + v2 < g->n_verts) {
+  if (g->bg.iops->valid_vertex(G, v1) && g->bg.iops->valid_vertex(G, v2) &&
+      v1 != v2) {
     g->adj[v1 * n + v2] = w;
     return true;
   }
@@ -81,7 +82,8 @@ static bool m_add_edge(void* G, VertexId v1, VertexId v2, Weight w) {
 static bool m_remove_edge(void* G, VertexId v1, VertexId v2) {
   MGraph* g = (MGraph*)G;
   int n = g->n_verts;
-  if (v1 >= 0 && v2 >= 0 && v1 != v2 && v1 * n + v2 < g->n_verts) {
+  if (g->bg.iops->valid_vertex(G, v1) && g->bg.iops->valid_vertex(G, v2) &&
+      v1 != v2) {
     g->adj[v1 * n + v2] = 0;
     return true;
   }
