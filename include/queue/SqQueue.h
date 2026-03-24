@@ -1,8 +1,14 @@
-#ifndef INCLUDE_SQQUEUE_HPP
-#define INCLUDE_SQQUEUE_HPP
-#include <cstddef>
-#include <cstdlib>
-#include <cstring>
+#ifndef INCLUDE_SQQUEUE_H
+#define INCLUDE_SQQUEUE_H
+
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @brief 循环队列,队尾后空出一个节点用于解决空队、满队判别
@@ -17,7 +23,7 @@ typedef struct {
 /**
  * @brief 初始化队列
  */
-inline bool InitQueue(SqQueue** q, size_t elem_size, int capacity = 50) {
+static inline bool InitQueue(SqQueue** q, size_t elem_size, int capacity) {
   void* data = (void*)malloc(elem_size * capacity);
   *q = (SqQueue*)malloc(sizeof(SqQueue));
   if (data == NULL || *q == NULL) {
@@ -34,7 +40,7 @@ inline bool InitQueue(SqQueue** q, size_t elem_size, int capacity = 50) {
 /**
  * @brief 循环队列 空队判别
  */
-inline bool isSqQueueEmpty(SqQueue* q) {
+static inline bool isSqQueueEmpty(SqQueue* q) {
   if (q->front == q->rear) {
     return true;
   } else {
@@ -44,7 +50,7 @@ inline bool isSqQueueEmpty(SqQueue* q) {
 /**
  * @brief 循环队列 满队判别
  */
-inline bool isSqQueueFull(SqQueue* q) {
+static inline bool isSqQueueFull(SqQueue* q) {
   int capacity = q->capacity;
   int rear_plus_one = (q->rear + 1) % capacity;
   if (q->front == rear_plus_one) {
@@ -57,7 +63,7 @@ inline bool isSqQueueFull(SqQueue* q) {
 /**
  * @brief 循环队列 入队
  */
-inline bool EnQueue(SqQueue* q, const void* val) {
+static inline bool EnQueue(SqQueue* q, const void* val) {
   if (isSqQueueFull(q)) {
     return false;
   }
@@ -71,7 +77,7 @@ inline bool EnQueue(SqQueue* q, const void* val) {
 /**
  * @brief 循环队列 出队
  */
-inline bool DeQueue(SqQueue* q, void* val) {
+static inline bool DeQueue(SqQueue* q, void* val) {
   if (isSqQueueEmpty(q)) {
     return false;
   }
@@ -82,7 +88,7 @@ inline bool DeQueue(SqQueue* q, void* val) {
   return true;
 }
 
-inline bool GetFront(SqQueue* q, void* val) {
+static inline bool GetFront(SqQueue* q, void* val) {
   if (isSqQueueEmpty(q)) {
     return false;
   }
@@ -90,12 +96,12 @@ inline bool GetFront(SqQueue* q, void* val) {
   memcpy(val, source, q->elem_size);
   return true;
 }
-inline int SqQueueLength(SqQueue* q) {
+static inline int SqQueueLength(SqQueue* q) {
   int capacity = q->capacity;
   return (q->rear - q->front + capacity) % capacity;
 }
 
-inline bool DestorySqQueue(SqQueue** q) {
+static inline bool DestorySqQueue(SqQueue** q) {
   if (q == NULL || *q == NULL || (*q)->data == NULL) {
     return false;
   }
@@ -106,4 +112,7 @@ inline bool DestorySqQueue(SqQueue** q) {
   *q = NULL;
   return true;
 }
-#endif  // !INCLUDE_SQQUEUE_HPP
+#ifdef __cplusplus
+}
+#endif
+#endif

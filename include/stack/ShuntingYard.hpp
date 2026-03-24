@@ -7,7 +7,7 @@
 #include <cstring>
 
 #include "SqStack.hpp"
-#include "queue/SqQueue.hpp"
+#include "queue/SqQueue.h"
 
 inline int sym_code_(char sym) {
   static int table[256] = {0};

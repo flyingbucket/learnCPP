@@ -4,7 +4,7 @@
 #include <cstdlib>
 
 #include "BinaryTree.hpp"
-#include "queue/SqQueue.hpp"
+#include "queue/SqQueue.h"
 
 inline int compare_ints_asc_(const void* a, const void* b) {
   int val_a = *(const int*)a;
@@ -47,9 +47,9 @@ inline BiTreeLi BuildHuffman(int* w, size_t len) {
   SqQueue* ori = NULL;
   SqQueue* sum = NULL;
   bool queue_tag = true;
-  queue_tag = InitQueue(&ori, sizeof(Node*));
+  queue_tag = InitQueue(&ori, sizeof(Node*), 50);
   if (!queue_tag) return NULL;
-  queue_tag = InitQueue(&sum, sizeof(Node*));
+  queue_tag = InitQueue(&sum, sizeof(Node*), 50);
   if (!queue_tag) {
     DestorySqQueue(&ori);
     return NULL;

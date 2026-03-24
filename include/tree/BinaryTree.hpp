@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "queue/SqQueue.hpp"
+#include "queue/SqQueue.h"
 
 typedef struct {
   void* arr;
@@ -57,7 +57,7 @@ inline void LevelOrder(void* tree, void* root_handle, TreeOps ops,
   if (!ops.is_valid(tree, root_handle)) return;
 
   SqQueue* que = NULL;
-  InitQueue(&que, sizeof(void*));
+  InitQueue(&que, sizeof(void*), 50);
   EnQueue(que, (const void*)&root_handle);
   while (!isSqQueueEmpty(que)) {
     void* head = NULL;

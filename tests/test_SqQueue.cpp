@@ -1,11 +1,11 @@
 #include "catch2/catch.hpp"
-#include "queue/SqQueue.hpp"
+#include "queue/SqQueue.h"
 
 #define MaxSize 50
 
 TEST_CASE("SqQueue: Initialization", "[SqQueue]") {
   SqQueue* q;
-  bool initSuccess = InitQueue(&q, sizeof(int));
+  bool initSuccess = InitQueue(&q, sizeof(int), 50);
   REQUIRE(initSuccess == true);
 
   REQUIRE(isSqQueueEmpty(q) == true);
@@ -17,7 +17,7 @@ TEST_CASE("SqQueue: Initialization", "[SqQueue]") {
 
 TEST_CASE("SqQueue: EnQueue and DeQueue basics", "[SqQueue]") {
   SqQueue* q;
-  InitQueue(&q, sizeof(int));
+  InitQueue(&q, sizeof(int), 50);
 
   SECTION("EnQueue a single element") {
     int val = 10;                     // 修改点：使用局部变量
@@ -56,7 +56,7 @@ TEST_CASE("SqQueue: EnQueue and DeQueue basics", "[SqQueue]") {
 
 TEST_CASE("SqQueue: Full queue behavior", "[SqQueue]") {
   SqQueue* q;
-  InitQueue(&q, sizeof(int));
+  InitQueue(&q, sizeof(int), 50);
 
   SECTION("Fill the queue to its capacity") {
     int capacity = MaxSize - 1;
@@ -76,7 +76,7 @@ TEST_CASE("SqQueue: Full queue behavior", "[SqQueue]") {
 
 TEST_CASE("SqQueue: Circular Wrap-around behavior", "[SqQueue]") {
   SqQueue* q;
-  InitQueue(&q, sizeof(int));
+  InitQueue(&q, sizeof(int), 50);
 
   for (int i = 0; i < 20; ++i) {
     int val = i;
