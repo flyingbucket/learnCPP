@@ -1,7 +1,6 @@
 #ifndef INCLUDE_GRAPH_GRAPHALGORITHM_H
 #define INCLUDE_GRAPH_GRAPHALGORITHM_H
 #include <stdbool.h>
-#include <stdlib.h>
 #ifdef __cplusplus
 extern "C" {
 #endif  // __cplusplus

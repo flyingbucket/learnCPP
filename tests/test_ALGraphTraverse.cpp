@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <vector>
 
 #include "catch2/catch.hpp"
