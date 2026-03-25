@@ -61,9 +61,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # ==src==
 macro(add_src_library target_name src_root)
-    file(GLOB_RECURSE C_SOURCES   "${src_root}/*.c")
-    file(GLOB_RECURSE CXX_SOURCES "${src_root}/*.cpp")
-
+    file(GLOB_RECURSE C_SOURCES CONFIGURE_DEPENDS "${src_root}/*.c")
+    file(GLOB_RECURSE CXX_SOURCES CONFIGURE_DEPENDS "${src_root}/*.cpp")
     # 合并 C 和 C++ 源
     set(ALL_SOURCES ${C_SOURCES} ${CXX_SOURCES})
 
@@ -89,7 +88,7 @@ add_src_library(impl_algo ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # ==examples==
 macro(add_dir_targets directory_path)
-    file(GLOB_RECURSE SOURCE_FILES "${directory_path}/*.cpp" "${directory_path}/*.c")
+    file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS "${directory_path}/*.cpp" "${directory_path}/*.c")
     foreach(src_file ${SOURCE_FILES})
         # 获取文件名 (如: 01)
         get_filename_component(file_name ${src_file} NAME_WE)
@@ -120,7 +119,7 @@ target_compile_definitions(catch2_main PRIVATE CATCH_CONFIG_MAIN)
 target_precompile_headers(catch2_main PRIVATE "third_party/catch2/catch.hpp")
 
 # 注册测试
-file(GLOB TEST_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp")
+file(GLOB TEST_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp")
 foreach(test_src ${TEST_SOURCES})
     get_filename_component(test_name ${test_src} NAME_WE)
     # 排除 test_main 本身，避免把它自己注册成一个测试
