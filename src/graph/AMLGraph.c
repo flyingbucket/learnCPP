@@ -1,6 +1,7 @@
 #include "graph/AMLGraph.h"
 
 #include <assert.h>
+#include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
 
@@ -43,29 +44,43 @@ static bool adjacent(void* G, VertexId v1, VertexId v2) {
   return false;
 }
 
-static VertexId first_neighbor(void* G, VertexId v) {
+static Edge first_neighbor(void* G, VertexId v) {
+  Edge invalid_edge = {.t = -1, .h = -1, .w = INFINITY};
   AMLGraph* g = GET_AMLG(G);
-  if (!valid_vertex(G, v) || !g->verts[v].firstedge) return -1;
+  if (!valid_vertex(G, v) || !g->verts[v].firstedge) return invalid_edge;
 
   AMLENode* e = g->verts[v].firstedge;
-  return (e->ivex == v) ? e->jvex : e->ivex;
+  VertexId h = (e->ivex == v) ? e->jvex : e->ivex;
+  Edge res = {
+      .t = v,
+      .h = h,
+      .w = e->w,
+  };
+  return res;
 }
 
-static VertexId next_neighbor(void* G, VertexId v, VertexId w) {
+static Edge next_neighbor(void* G, VertexId v, VertexId w) {
+  Edge invalid_edge = {.t = -1, .h = -1, .w = INFINITY};
   AMLGraph* g = GET_AMLG(G);
-  if (!valid_vertex(G, v)) return -1;
+  if (!valid_vertex(G, v)) return invalid_edge;
 
   AMLENode* p = g->verts[v].firstedge;
   while (p) {
     VertexId curr_neighbor = (p->ivex == v) ? p->jvex : p->ivex;
     if (curr_neighbor == w) {
       AMLENode* next = (p->ivex == v) ? p->ilink : p->jlink;
-      if (!next) return -1;
-      return (next->ivex == v) ? next->jvex : next->ivex;
+      if (!next) return invalid_edge;
+      VertexId h = (next->ivex == v) ? next->jvex : next->ivex;
+      Edge res = {
+          .t = v,
+          .h = h,
+          .w = next->w,
+      };
+      return res;
     }
     p = (p->ivex == v) ? p->ilink : p->jlink;
   }
-  return -1;
+  return invalid_edge;
 }
 
 static VertexId add_vert(void* G) {

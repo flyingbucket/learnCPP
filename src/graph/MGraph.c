@@ -1,5 +1,6 @@
 #include "graph/MGraph.h"
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -41,22 +42,38 @@ static bool m_adjacent(void* G, VertexId v1, VertexId v2) {
   Weight(*adj)[n] = (Weight(*)[n])g->adj;
   return adj[v1][v2] != 0;
 }
-static int m_first_neighbor(void* G, VertexId v) {
+static Edge m_first_neighbor(void* G, VertexId v) {
+  Edge invalid_edge = {.t = -1, .h = -1, .w = INFINITY};
   MGraph* g = (MGraph*)G;
   int n = g->n_verts;
-  if (v > n * n) return -1;
-  for (int w = 0; w < n; ++w) {
-    if (g->adj[v * n + w] != 0) return w;
+  if (v > n * n) return invalid_edge;
+  for (int h = 0; h < n; ++h) {
+    if (g->adj[v * n + h] != 0) {
+      Edge res = {
+          .t = v,
+          .h = h,
+          .w = g->adj[v * n + h],
+      };
+      return res;
+    };
   }
-  return -1;
+  return invalid_edge;
 }
-static int m_next_neighbor(void* G, VertexId v, VertexId w) {
+static Edge m_next_neighbor(void* G, VertexId v, VertexId w) {
+  Edge invalid_edge = {.t = -1, .h = -1, .w = INFINITY};
   MGraph* g = (MGraph*)G;
   int n = g->n_verts;
   for (int x = w + 1; x < n; ++x) {
-    if (g->adj[v * n + x] != 0) return x;
+    if (g->adj[v * n + x] != 0) {
+      Edge res = {
+          .t = v,
+          .h = x,
+          .w = g->adj[v * n + x],
+      };
+      return res;
+    }
   }
-  return -1;
+  return invalid_edge;
 }
 static const GraphQueryOps MGRAPH_QOPS = {
     .adjacent = m_adjacent,

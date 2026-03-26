@@ -9,6 +9,12 @@ extern "C" {
 typedef int VertexId;
 typedef double Weight;
 
+typedef struct {
+  VertexId t;
+  VertexId h;
+  Weight w;
+} Edge;
+
 typedef struct GraphInfoOps {
   int (*vertex_count)(void* G);
   int (*edge_count)(void* G);
@@ -18,8 +24,8 @@ typedef struct GraphInfoOps {
 
 typedef struct GraphQueryOps {
   bool (*adjacent)(void* G, VertexId v1, VertexId v2);
-  VertexId (*first_neighbor)(void* G, VertexId v);
-  VertexId (*next_neighbor)(void* G, VertexId v, VertexId w);
+  Edge (*first_neighbor)(void* G, VertexId v);
+  Edge (*next_neighbor)(void* G, VertexId v, VertexId w);
 } GraphQueryOps;
 
 typedef struct GraphMutateOps {

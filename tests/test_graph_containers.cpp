@@ -1,5 +1,7 @@
 #include <catch2/catch.hpp>
 
+#include "graph/GraphOps.h"
+
 extern "C" {
 #include "graph/ALGraph.h"
 #include "graph/AMLGraph.h"
@@ -42,7 +44,8 @@ TEST_CASE("ALGraph Container Semantics", "[algraph]") {
     REQUIRE(ops->wops.get_edge_weight(g, v0, v1) == Catch::Detail::Approx(1.5));
 
     // 验证迭代邻居
-    VertexId first = ops->qops.first_neighbor(g, v0);
+    Edge first_edge = ops->qops.first_neighbor(g, v0);
+    VertexId first = first_edge.h;
     REQUIRE((first == v1 ||
              first == v2));  // 取决于头插法，实际上应该是最后插入的 v2
   }

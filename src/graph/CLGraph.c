@@ -1,5 +1,6 @@
 #include "graph/CLGraph.h"
 
+#include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -184,25 +185,33 @@ static bool adjacent(void* G, VertexId v1, VertexId v2) {
  * 找到顶点 v 的第一个邻接点
  * 效率：O(1) 找到边，O(1) 返回 ID
  */
-static int first_neighbor(void* G, VertexId v) {
+static Edge first_neighbor(void* G, VertexId v) {
+  Edge invalid_edge = {.t = -1, .h = -1, .w = INFINITY};
   CLGraph* g = (CLGraph*)G;
-  if (!valid_vertex(G, v)) return -1;
+  if (!valid_vertex(G, v)) return invalid_edge;
 
   CLENode* p = g->xlist[v].firstout;
   if (p) {
-    return (int)p->headvex;
+    VertexId h = (VertexId)p->headvex;
+    Edge res = {
+        .t = v,
+        .h = h,
+        .w = p->w,
+    };
+    return res;
   }
-  return -1;
+  return invalid_edge;
 }
 
 /**
  * 找到顶点 v 相对于邻接点 w 的下一个邻接点
  * 效率：O(out_degree(v))
  */
-static int next_neighbor(void* G, VertexId v, VertexId w) {
-  if (G == NULL) return -1;
+static Edge next_neighbor(void* G, VertexId v, VertexId w) {
+  Edge invalid_edge = {.t = -1, .h = -1, .w = INFINITY};
+  if (G == NULL) return invalid_edge;
   CLGraph* g = (CLGraph*)G;
-  if (!valid_vertex(G, v) || !valid_vertex(G, w) || v == w) return -1;
+  if (!valid_vertex(G, v) || !valid_vertex(G, w) || v == w) return invalid_edge;
 
   CLENode* p = g->xlist[v].firstout;
 
@@ -211,10 +220,16 @@ static int next_neighbor(void* G, VertexId v, VertexId w) {
   }
 
   if (p && p->tlink) {
-    return (int)p->tlink->headvex;
+    VertexId h = (VertexId)p->tlink->headvex;
+    Edge res = {
+        .t = v,
+        .h = h,
+        .w = p->w,
+    };
+    return res;
   }
 
-  return -1;
+  return invalid_edge;
 }
 
 GraphQueryOps CLGRAPH_QOPS = {.adjacent = adjacent,

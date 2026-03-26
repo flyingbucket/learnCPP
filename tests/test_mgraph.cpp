@@ -44,14 +44,14 @@ TEST_CASE("MGraph Operations", "[MGraph]") {
     g->adj[1 * n_verts + 2] = 1.0;
     g->adj[1 * n_verts + 4] = 1.0;
 
-    int first = g->bg.qops.first_neighbor(g, 1);
-    REQUIRE(first == 2);
+    Edge first_edge = g->bg.qops.first_neighbor(g, 1);
+    REQUIRE(first_edge.h == 2);
 
-    int next = g->bg.qops.next_neighbor(g, 1, 2);
-    REQUIRE(next == 4);
+    Edge next = g->bg.qops.next_neighbor(g, 1, 2);
+    REQUIRE(next.h == 4);
 
-    int none = g->bg.qops.next_neighbor(g, 1, 4);
-    REQUIRE(none == -1);
+    Edge none = g->bg.qops.next_neighbor(g, 1, 4);
+    REQUIRE(none.h == -1);
   }
 
   mgraph_destroy(g);

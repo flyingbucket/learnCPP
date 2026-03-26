@@ -1,5 +1,6 @@
 #include "graph/ALGraph.h"
 
+#include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -56,26 +57,38 @@ static bool adjacent(void* G, VertexId v1, VertexId v2) {
   }
   return found;
 }
-static int first_neighbor(void* G, VertexId v) {
-  if (G == NULL) return -1;
+static Edge first_neighbor(void* G, VertexId v) {
+  Edge invalid_edge = {.t = -1, .h = -1, .w = INFINITY};
+  if (G == NULL) return invalid_edge;
   ALGraph* g = (ALGraph*)G;
   if (v >= 0 && v < g->n_verts && g->verts[v].firstarc) {
-    return g->verts[v].firstarc->adjvex;
+    Edge res = {
+        .t = v,
+        .h = g->verts[v].firstarc->adjvex,
+        .w = g->verts[v].firstarc->w,
+    };
+    return res;
   }
-  return -1;
+  return invalid_edge;
 }
-static int next_neighbor(void* G, VertexId v, VertexId w) {
-  if (G == NULL) return -1;
+static Edge next_neighbor(void* G, VertexId v, VertexId w) {
+  Edge invalid_edge = {.t = -1, .h = -1, .w = INFINITY};
+  if (G == NULL) return invalid_edge;
   ALGraph* g = (ALGraph*)G;
   if (!g->bg.iops.valid_vertex(G, w) || !g->bg.iops.valid_vertex(G, v)) {
-    return -1;
+    return invalid_edge;
   }
   ALENode* edge_v = g->verts[v].firstarc;
   while (edge_v != NULL && edge_v->adjvex != w) {
     edge_v = edge_v->nextarc;
   }
-  if (edge_v == NULL || edge_v->nextarc == NULL) return -1;
-  return edge_v->nextarc->adjvex;
+  if (edge_v == NULL || edge_v->nextarc == NULL) return invalid_edge;
+  Edge res = {
+      .t = v,
+      .h = edge_v->nextarc->adjvex,
+      .w = edge_v->nextarc->w,
+  };
+  return res;
 }
 GraphQueryOps const ALGRAPH_QOPS = {
     .adjacent = adjacent,

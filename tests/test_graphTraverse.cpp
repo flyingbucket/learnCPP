@@ -13,8 +13,8 @@ extern "C" {
 // 1. 构建 Mock Graph (模拟图) 用于测试
 // ============================================================================
 #define MAX_MOCK_VERTS 20
-#define INVALID_VERTEX (-1)
 
+const Edge invalid_edge = {.t = -1, .h = -1, .w = INFINITY};
 struct MockGraph {
   BaseGraph bg;
   int n_verts;
@@ -30,20 +30,36 @@ static bool mock_valid_vertex(void* G, VertexId v) {
   return v >= 0 && v < static_cast<MockGraph*>(G)->n_verts;
 }
 
-static VertexId mock_first_neighbor(void* G, VertexId v) {
+static Edge mock_first_neighbor(void* G, VertexId v) {
   MockGraph* mg = static_cast<MockGraph*>(G);
   for (int i = 0; i < mg->n_verts; i++) {
-    if (mg->adj[v][i]) return i;
+    if (mg->adj[v][i]) {
+      Weight w = mg->adj[v][i];
+      Edge res = {
+          .t = v,
+          .h = i,
+          .w = w,
+      };
+      return res;
+    }
   }
-  return INVALID_VERTEX;
+  return invalid_edge;
 }
 
-static VertexId mock_next_neighbor(void* G, VertexId v, VertexId w) {
+static Edge mock_next_neighbor(void* G, VertexId v, VertexId w) {
   MockGraph* mg = static_cast<MockGraph*>(G);
   for (int i = w + 1; i < mg->n_verts; i++) {
-    if (mg->adj[v][i]) return i;
+    if (mg->adj[v][i]) {
+      Weight weight = mg->adj[v][i];
+      Edge res = {
+          .t = v,
+          .h = i,
+          .w = weight,
+      };
+      return res;
+    }
   }
-  return INVALID_VERTEX;
+  return invalid_edge;
 }
 
 static Weight mock_get_edge_weight(void* G, VertexId v1, VertexId v2) {

@@ -39,23 +39,20 @@ void BFS(void* graph_context, const BaseGraph* graph_methods, VertexId start_v,
     VertexId v;
     DeQueue(q, &v);
 
-    for (VertexId neighbor = bg->qops.first_neighbor(G, v);
-         bg->iops.valid_vertex(G, neighbor);
-         neighbor = bg->qops.next_neighbor(G, v, neighbor)) {
-      Weight w = bg->wops.get_edge_weight(G, v, neighbor);
-
-      if (!visited[neighbor]) {
-        visited[neighbor] = true;
+    for (Edge e = bg->qops.first_neighbor(G, v); bg->iops.valid_vertex(G, e.h);
+         e = bg->qops.next_neighbor(G, v, e.h)) {
+      if (!visited[e.h]) {
+        visited[e.h] = true;
 
         if (visitor.on_edge) {
-          visitor.on_edge(G, bg, v, neighbor, w, visitor.user_context);
+          visitor.on_edge(G, bg, v, e.h, e.w, visitor.user_context);
         }
 
         if (visitor.on_vertex) {
-          visitor.on_vertex(G, bg, neighbor, visitor.user_context);
+          visitor.on_vertex(G, bg, e.h, visitor.user_context);
         }
 
-        EnQueue(q, &neighbor);
+        EnQueue(q, &e.h);
       }
     }
   }
@@ -120,16 +117,16 @@ void DFS(void* graph_context, const BaseGraph* graph_methods, VertexId start_v,
   if (visitor.on_vertex) {
     visitor.on_vertex(G, bg, start_v, visitor.user_context);
   }
-  for (VertexId neighbor = bg->qops.first_neighbor(G, start_v);
-       bg->iops.valid_vertex(G, neighbor);
-       neighbor = bg->qops.next_neighbor(G, start_v, neighbor)) {
-    if (!visited[neighbor]) {
-      visited[neighbor] = true;
+  for (Edge neighbor = bg->qops.first_neighbor(G, start_v);
+       bg->iops.valid_vertex(G, neighbor.h);
+       neighbor = bg->qops.next_neighbor(G, start_v, neighbor.h)) {
+    if (!visited[neighbor.h]) {
+      visited[neighbor.h] = true;
       if (visitor.on_edge) {
-        Weight w = bg->wops.get_edge_weight(G, start_v, neighbor);
-        visitor.on_edge(G, bg, start_v, neighbor, w, visitor.user_context);
+        visitor.on_edge(G, bg, start_v, neighbor.h, neighbor.w,
+                        visitor.user_context);
       }
-      DFS(G, bg, neighbor, visited, visitor);
+      DFS(G, bg, neighbor.h, visited, visitor);
     }
   }
 }

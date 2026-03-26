@@ -32,14 +32,8 @@ void DFS(void* graph_context, const BaseGraph* graph_methods, VertexId start_v,
 // mst
 
 typedef struct {
-  VertexId u;
-  VertexId v;
-  Weight w;
-} MSTEdge;
-
-typedef struct {
   int component_count;
-  MSTEdge* edges;
+  Edge* edges;
   int* compunent_offset;
 } MSTResult;
 
