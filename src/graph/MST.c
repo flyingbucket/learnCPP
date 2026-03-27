@@ -101,9 +101,11 @@ MSTResult* Prim(const void* graph_context, const BaseGraph* graph_methods) {
 static inline int compare_edge(const void* e1, const void* e2) {
   Edge* l = (Edge*)e1;
   Edge* r = (Edge*)e2;
-  return (l->w - r->w < 0) ? -1 : 1;
-}
 
+  if (l->w < r->w) return -1;
+  if (l->w > r->w) return 1;
+  return 0;  // 必须处理相等的情况！
+}
 MSTResult* Kruskal(const void* graph_context, const BaseGraph* bg) {
   if (!graph_context || !bg) return NULL;
 
@@ -124,7 +126,14 @@ MSTResult* Kruskal(const void* graph_context, const BaseGraph* bg) {
   all_edges = bg->qops.all_edges(G);
   if (!all_edges) goto cleanup;
   qsort(all_edges, ne, sizeof(Edge), compare_edge);
-
+  for (int i = 0; i < ne; i++) {
+    if (all_edges[i].t < 0 || all_edges[i].t >= nv || all_edges[i].h < 0 ||
+        all_edges[i].h >= nv) {
+      printf("\n[ERROR] Corrupted edge at index %d: t=%d, h=%d, ne=%d\n", i,
+             all_edges[i].t, all_edges[i].h, ne);
+      goto cleanup;
+    }
+  }
   if (!InitUFset(&set, nv)) goto cleanup;
 
   mst_edges = (Edge*)malloc(sizeof(Edge) * (nv - 1));
