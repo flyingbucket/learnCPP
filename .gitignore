@@ -1,3 +1,4 @@
 build/
+build_bench/
 compile_commands.json
 .cache/

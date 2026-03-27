@@ -2,26 +2,29 @@ cmake_minimum_required(VERSION 3.16+)
 project(learnAlgorithm)
 
 #== compiler setup==
+option(USE_ASAN "Enable AddressSanitizer for debugging" ON)
+
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-fcolor-diagnostics)
     message(STATUS "Configuring for Clang: Precision diagnostics enabled.")
-    add_compile_options(-fsanitize=address -g -fno-omit-frame-pointer)
-    add_link_options(-fsanitize=address)
-    message(STATUS "Clang AddressSanitizer enabled!")
+
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     add_compile_options(-fdiagnostics-color=always -fmax-errors=5)
-    include(CheckCXXCompilerFlag)
-    set(CMAKE_REQUIRED_FLAGS "-fsanitize=address")
-    check_cxx_compiler_flag("-fsanitize=address" GCC_HAS_ASAN)
-    unset(CMAKE_REQUIRED_FLAGS)
-    if(GCC_HAS_ASAN)
+    message(STATUS "Configuring for GCC: Error limit and color enabled.")
+endif()
+
+if(USE_ASAN)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+        # -g: 保留调试符号以便 ASan 打印行号
+        # -fno-omit-frame-pointer: 确保 stack trace 的完整性
         add_compile_options(-fsanitize=address -g -fno-omit-frame-pointer)
-        add_link_options(-fsanitize=address) 
-        message(STATUS "Configuring for GCC: libasan found! Error limit and ASan enabled.")
+        add_link_options(-fsanitize=address)
+        message(STATUS "AddressSanitizer: ENABLED (Recommended for development/testing)")
     else()
-        add_compile_options(-g)
-        message(WARNING "Configuring for GCC: libasan NOT found! Falling back to standard build (ASan disabled).")
+        message(WARNING "AddressSanitizer: NOT supported on this compiler.")
     endif()
+else()
+    message(STATUS "AddressSanitizer: DISABLED (Optimized for Benchmarking)")
 endif()
 
 # ==speed-up==
@@ -109,7 +112,7 @@ macro(add_dir_targets directory_path)
         endif()
     endforeach()
 endmacro()
-
+add_dir_targets(examples)
 # ==tests==
 enable_testing()
 # 找到测试引擎文件
@@ -129,5 +132,29 @@ foreach(test_src ${TEST_SOURCES})
         set_target_properties(${test_name} PROPERTIES BUILD_RPATH "$ORIGIN")
         add_test(NAME ${test_name} COMMAND ${test_name})
         message(STATUS "Speed-optimized target: ${test_name}")
+    endif()
+endforeach()
+
+# == benchmarks ==
+set(BENCH_MAIN_SRC "${CMAKE_CURRENT_SOURCE_DIR}/benchmarks/bench_main.cpp")
+add_library(catch2_bench STATIC ${BENCH_MAIN_SRC})
+# 确保宏定义正确传播
+target_compile_definitions(catch2_bench PUBLIC CATCH_CONFIG_ENABLE_BENCHMARKING)
+
+file(GLOB BENCH_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/benchmarks/bench_*.cpp")
+
+foreach(bench_src ${BENCH_SOURCES})
+    get_filename_component(bench_name ${bench_src} NAME_WE)
+    
+    # 【关键修改】排除 bench_main 本身，避免重复定义
+    if(NOT ${bench_name} STREQUAL "bench_main")
+        add_executable(${bench_name} ${bench_src})
+        target_link_libraries(${bench_name} PRIVATE catch2_bench impl_algo)
+        
+        set_target_properties(${bench_name} PROPERTIES 
+            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/benchmarks"
+        )
+        # 建议直接在 target 上加优化开关，而不是 COMPILE_FLAGS（那是旧语法）
+        target_compile_options(${bench_name} PRIVATE -O3)
     endif()
 endforeach()

@@ -1,5 +1,6 @@
 build_dir := "build"
 bin_dir   := "build/bin"
+bench_dir := "build_bench"
 
 # show these info 
 default:
@@ -71,25 +72,59 @@ run compiler="":
     fi
 
 # --- 测试与性能 ---
-
 test compiler="":
 	#!/usr/bin/env bash
 	just build {{compiler}}
 	cd {{build_dir}} && ctest --output-on-failure
 
-bench target compiler="":
-	#!/usr/bin/env bash
-	just setup {{compiler}}
-	cmake --build {{build_dir}} --target "{{target}}"
-	echo "Running Benchmarks for {{target}}..."
-	./{{bin_dir}}/{{target}} "[benchmark]" --benchmark-samples 100
+bench compiler="" asan_toggle="no-asan":
+    #!/usr/bin/env bash
+    set -e
+    
+    # 1. 处理 ASan 开关逻辑
+    if [ "{{asan_toggle}}" = "asan" ]; then
+        asan_flag="ON"
+        mode_msg="ASan: ON (Debug Mode)"
+    else
+        asan_flag="OFF"
+        mode_msg="ASan: OFF (Performance Mode)"
+    fi
 
-# --- 工具 ---
+    # 2. 配置环境 (如果目录不存在，或显式指定了参数，则重新配置)
+    c_val="{{compiler}}"
+    if [ ! -d "{{bench_dir}}" ] || [ -n "$c_val" ] || [ -n "{{asan_toggle}}" ]; then
+        echo "--- Configuring Benchmark Build ($mode_msg) ---"
+        args=(-B "{{bench_dir}}" -DCMAKE_BUILD_TYPE=Release -DUSE_ASAN=$asan_flag -DCMAKE_EXPORT_COMPILE_COMMANDS=ON)
+        
+        if [ "$c_val" = "clang" ]; then
+            args+=("-DCMAKE_C_COMPILER=clang" "-DCMAKE_CXX_COMPILER=clang++")
+        elif [ "$c_val" = "gcc" ]; then
+            args+=("-DCMAKE_C_COMPILER=gcc" "-DCMAKE_CXX_COMPILER=g++")
+        fi
+        cmake "${args[@]}"
+    fi
 
+    # 3. 交互式选择源码
+    selected_cpp=$(find benchmarks -name "bench_*.cpp" ! -name "bench_main.cpp" | fzf --prompt="Select Benchmark Source ($mode_msg) > ")
+
+    if [ -n "$selected_cpp" ]; then
+        target=$(basename "$selected_cpp" .cpp)
+        threads=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
+
+        echo "--- Building $target ---"
+        cmake --build {{bench_dir}} --target "$target" -j "$threads"
+
+        echo "------------------------------------------------"
+        echo "Running: $target"
+        ./{{bench_dir}}/bin/benchmarks/"$target" --benchmark-samples 100
+    else
+        echo "No target selected."
+    fi
 clean:
-	#!/usr/bin/env bash
-	rm -rf {{build_dir}}
-	echo "Build directory removed."
+    #!/usr/bin/env bash
+    rm -rf {{build_dir}}
+    rm -rf {{bench_dir}}
+    echo "Cleanup complete: '{{build_dir}}' and '{{bench_dir}}' removed."
 
 stats:
     #!/usr/bin/env bash
