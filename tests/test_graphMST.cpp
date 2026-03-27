@@ -1,11 +1,9 @@
 #include <catch2/catch.hpp>
-#include <cmath>
 #include <cstdio>
 #include <vector>
 
 #include "graph/ALGraph.h"
 #include "graph/GraphAlgorithms.h"
-#include "graph/MGraph.h"
 
 /**
  * @brief 构造测试图的辅助模板

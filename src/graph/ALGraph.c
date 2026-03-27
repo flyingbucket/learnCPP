@@ -7,7 +7,6 @@
 #include <stdlib.h>
 
 #include "graph/GraphOps.h"
-#include "queue/SqQueue.h"
 
 static int vertex_count(const void* G) {
   if (G == NULL) return -1;

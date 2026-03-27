@@ -12,6 +12,7 @@ typedef struct MGraph {
   int n_verts;
   int n_edges;
   void** verts;
+  bool directed;
   Weight* adj;
 } MGraph;
 

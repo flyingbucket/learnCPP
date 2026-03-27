@@ -75,10 +75,44 @@ static Edge m_next_neighbor(const void* G, VertexId v, VertexId w) {
   }
   return invalid_edge;
 }
+
+static Edge* m_all_edges(const void* G) {
+  if (!G) return NULL;
+  MGraph* g = (MGraph*)G;
+
+  Edge* edges = (Edge*)malloc(sizeof(Edge) * g->n_edges);
+  if (!edges) return NULL;
+
+  int count = 0;
+  for (int i = 0; i < g->n_verts; i++) {
+    int start_j = (g->directed) ? 0 : i + 1;
+
+    for (int j = start_j; j < g->n_verts; j++) {
+      // 3. 索引计算：i * 宽度 + j
+      // 注意：这里假设你的矩阵宽度就是 g->n_verts
+      Weight w = g->adj[i * g->n_verts + j];
+
+      // 4. 判断边是否存在 (假设 0 代表无边，且不是自环)
+      // 你可以根据你的定义修改判断条件，如 w != INF
+      if (w > 0 && w < 1000000) {  // 这里的 1000000 对应你的 INF 定义
+        if (count < g->n_edges) {
+          edges[count].t = i;  // 起点 (tail)
+          edges[count].h = j;  // 终点 (head)
+          edges[count].w = w;  // 权重
+          count++;
+        }
+      }
+    }
+  }
+
+  // 5. 安全检查：如果实际发现的边数少于 n_edges，可以更新或记录
+  return edges;
+}
 static const GraphQueryOps MGRAPH_QOPS = {
     .adjacent = m_adjacent,
     .first_neighbor = m_first_neighbor,
     .next_neighbor = m_next_neighbor,
+    .all_edges = m_all_edges,
 };
 
 static VertexId m_add_vert(void* G) {
