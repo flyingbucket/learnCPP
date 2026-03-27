@@ -152,6 +152,7 @@ MGraph* mgraph_init(int n_verts) {
   if (!g) return NULL;
 
   g->n_verts = n_verts;
+  g->n_edges = 0;
   g->verts = NULL;
   g->adj = (Weight*)calloc((size_t)n_verts * (size_t)n_verts, sizeof(Weight));
   if (!g->adj) {

@@ -1,12 +1,13 @@
 #include "graph/ALGraph.h"
 
+#include <assert.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include "graph/GraphOps.h"
+#include "queue/SqQueue.h"
 
 static int vertex_count(const void* G) {
   if (G == NULL) return -1;
@@ -90,10 +91,32 @@ static Edge next_neighbor(const void* G, VertexId v, VertexId w) {
   };
   return res;
 }
+static Edge* all_edges(const void* G) {
+  if (!G) return NULL;
+  ALGraph* g = (ALGraph*)G;
+  int e_count = 0;
+  int n_edges = (g->directed) ? g->n_edges : g->n_edges / 2;
+  Edge* edges = (Edge*)malloc(sizeof(Edge) * n_edges);
+  for (VertexId i = 0; i < g->n_verts; i++) {
+    ALENode* e = g->verts[i].firstarc;
+    while (e != NULL) {
+      if (g->directed || i < e->adjvex) {
+        if (e_count < n_edges) {
+          edges[e_count].t = i;
+          edges[e_count].h = e->adjvex, edges[e_count].w = e->w;
+          e_count++;
+        }
+      }
+      e = e->nextarc;
+    }
+  }
+  return edges;
+}
 GraphQueryOps const ALGRAPH_QOPS = {
     .adjacent = adjacent,
     .first_neighbor = first_neighbor,
     .next_neighbor = next_neighbor,
+    .all_edges = all_edges,
 };
 
 static VertexId add_vert(void* G) {

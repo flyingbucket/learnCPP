@@ -28,6 +28,7 @@ typedef struct {
   AdjList verts;
   int n_verts, n_edges;
   int vert_capacity;
+  bool directed;
 } ALGraph;
 
 ALGraph* algraph_init(int capacity);

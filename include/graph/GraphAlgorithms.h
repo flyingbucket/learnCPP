@@ -4,6 +4,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif  // __cplusplus
+#include <stdlib.h>
+
 #include "GraphOps.h"
 
 // traverse
@@ -33,12 +35,21 @@ void DFS(void* graph_context, const BaseGraph* graph_methods, VertexId start_v,
 
 typedef struct {
   int component_count;
+  int edge_count;
   Edge* edges;
-  int* compunent_offset;
+  int* component_offset;
 } MSTResult;
 
-MSTResult* Prim(void* graph_ori, const BaseGraph* graph_ori_methods);
-MSTResult* Krustarl(void* graph_ori, const BaseGraph* graph_ori_methods);
+static inline void DestroyMSTResult(MSTResult** res) {
+  if (res && *res) {
+    free((*res)->edges);
+    free((*res)->component_offset);
+    free((*res));
+    *res = NULL;
+  }
+}
+MSTResult* Prim(const void* graph_ori, const BaseGraph* graph_ori_methods);
+MSTResult* Kruskal(const void* graph_ori, const BaseGraph* graph_ori_methods);
 void Dijkstra(void);
 
 #ifdef __cplusplus

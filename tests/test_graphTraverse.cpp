@@ -1,4 +1,3 @@
-#include <iostream>
 #include <vector>
 
 #include "catch2/catch.hpp"
@@ -22,47 +21,39 @@ struct MockGraph {
 };
 
 // --- Mock GraphOps 实现 ---
-static int mock_vertex_count(void* G) {
-  return static_cast<MockGraph*>(G)->n_verts;
+
+static int mock_vertex_count(const void* G) {
+  // 必须转为 const 指针，保证不修改 G
+  return static_cast<const MockGraph*>(G)->n_verts;
 }
 
-static bool mock_valid_vertex(void* G, VertexId v) {
-  return v >= 0 && v < static_cast<MockGraph*>(G)->n_verts;
+static bool mock_valid_vertex(const void* G, VertexId v) {
+  return v >= 0 && v < static_cast<const MockGraph*>(G)->n_verts;
 }
 
-static Edge mock_first_neighbor(void* G, VertexId v) {
-  MockGraph* mg = static_cast<MockGraph*>(G);
+static Edge mock_first_neighbor(const void* G, VertexId v) {
+  // 重点：mg 也要是 const，否则调用者可能通过 mg 修改数据
+  const MockGraph* mg = static_cast<const MockGraph*>(G);
   for (int i = 0; i < mg->n_verts; i++) {
     if (mg->adj[v][i]) {
       Weight w = mg->adj[v][i];
-      Edge res = {
-          .t = v,
-          .h = i,
-          .w = w,
-      };
-      return res;
+      return (Edge){.t = v, .h = i, .w = w};
     }
   }
   return invalid_edge;
 }
 
-static Edge mock_next_neighbor(void* G, VertexId v, VertexId w) {
-  MockGraph* mg = static_cast<MockGraph*>(G);
+static Edge mock_next_neighbor(const void* G, VertexId v, VertexId w) {
+  const MockGraph* mg = static_cast<const MockGraph*>(G);
   for (int i = w + 1; i < mg->n_verts; i++) {
     if (mg->adj[v][i]) {
       Weight weight = mg->adj[v][i];
-      Edge res = {
-          .t = v,
-          .h = i,
-          .w = weight,
-      };
-      return res;
+      return (Edge){.t = v, .h = i, .w = weight};
     }
   }
   return invalid_edge;
 }
-
-static Weight mock_get_edge_weight(void* G, VertexId v1, VertexId v2) {
+static Weight mock_get_edge_weight(const void* G, VertexId v1, VertexId v2) {
   return 1.0;  // 默认权重为 1
 }
 
@@ -97,7 +88,6 @@ static void record_vertex_visit(void* G, const BaseGraph* bg, VertexId v,
   auto* order = static_cast<std::vector<VertexId>*>(ctx);
   order->push_back(v);
 }
-
 // ============================================================================
 // 3. Catch2 测试用例
 // ============================================================================
