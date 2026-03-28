@@ -121,16 +121,16 @@ GraphQueryOps const ALGRAPH_QOPS = {
 static VertexId add_vert(void* G) {
   if (G == NULL) return -1;
   ALGraph* g = (ALGraph*)G;
-  ALVNode* new_node_ptr = &(g->verts[g->n_verts]);
   if (g->n_verts >= g->vert_capacity) {
     int new_capacity = (g->vert_capacity == 0) ? 4 : g->vert_capacity * 2;
     ALVNode* temp = (ALVNode*)realloc(g->verts, sizeof(ALVNode) * new_capacity);
     if (temp == NULL) return -1;
     g->verts = temp;
     g->vert_capacity = new_capacity;
-    new_node_ptr->data = NULL;
-    new_node_ptr->firstarc = NULL;
   }
+  ALVNode* new_node_ptr = &(g->verts[g->n_verts]);
+  new_node_ptr->data = NULL;
+  new_node_ptr->firstarc = NULL;
 
   new_node_ptr->id = g->n_verts;
   VertexId new_id = new_node_ptr->id;
