@@ -14,10 +14,18 @@
 
 ## 环境配置
 
-编译器：gcc(gcc,g++)或clang(clang,clang++)的编译套件
-工具链：cmake(3.16+),just
-调试工具: 使用gcc套件则安装libasan,使用clang套件则安装llvm-asanitizer(一般直接安装完整的llvm开发工具)
-编译加速(可选): mold链接器，ccache缓存器
+- 编译器(任选其一即可):
+  - gcc套件(gcc,g++)
+  - clang套件(clang,clang++)
+- 工具链：
+  - cmake(3.16+)
+  - just
+- 调试工具:
+  - 使用gcc套件则安装libasan
+  - 使用clang套件则安装llvm-asanitizer(一般直接安装完整的llvm开发工具)
+- 编译加速(可选):
+  - mold链接器
+  - ccache缓存器
 
 ## 编译与运行
 
@@ -34,7 +42,7 @@
 | `just stats` | 代码行数统计 | 自动排除 `third_party` 依赖 |
 | `just clean` | 清理构建目录 | 移除 `build` 与 `build_release` |
 
-您也可以直接运行查看上述just命令的具体使用方式
+您也可以直接运行下面的命令查看上述just命令的具体使用方式
 
 ```bash
 just
@@ -49,13 +57,13 @@ just setup <compiler:gcc/clang> <debug/release>
 ```
 
 第一个参数用于选择您使用的编译器，第二个参数选择debug或release会分别
-在 `build/` (Debug) 和 `build_release/` (Release) 目录下生成构建配置。
+在 `build/` (debug) 和 `build_release/` (release) 目录下生成构建配置。
 
 ```bash
 just setup-all
 ```
 
-这个命令会自动将编译器设置为gcc并同时将`build/`和`build_release/`设置好。
+这个命令会自动选择gcc编译器并同时将`build/`和`build_release/`设置好。
 
 ### 构建模式说明
 
