@@ -17,9 +17,10 @@
 - 编译器(任选其一即可):
   - gcc套件(gcc,g++)
   - clang套件(clang,clang++)
-- 工具链：
+- 编译工具链及辅助cli工具：
   - cmake(3.16+)
-  - just
+  - [just](https://github.com/casey/just)
+  - [fzf](https://github.com/junegunn/fzf)
 - 调试工具:
   - 使用gcc套件则安装libasan
   - 使用clang套件则安装llvm-asanitizer(一般直接安装完整的llvm开发工具)
