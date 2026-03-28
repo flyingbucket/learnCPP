@@ -1,4 +1,4 @@
 build/
-build_bench/
+build_release/
 compile_commands.json
 .cache/
