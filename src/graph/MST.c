@@ -10,8 +10,13 @@
 
 MSTResult* Prim(const void* graph_context, const BaseGraph* graph_methods) {
   if (!graph_context || !graph_methods) return NULL;
+
   const void* G = graph_context;
   const BaseGraph* bg = graph_methods;
+
+  // Prim can only deal with undirected graph!
+  if (bg->iops.directed(G)) return NULL;
+
   int nv = bg->iops.vertex_count(G);
   MSTResult* result = (MSTResult*)malloc(sizeof(MSTResult));
   result->component_count = 0;
