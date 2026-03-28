@@ -117,7 +117,6 @@ stats:
     #!/usr/bin/env bash
     set -e
     echo "================ Code Statistics Overview ================"
-    # (保持你原来的统计逻辑不变)
     if command -v cloc >/dev/null 2>&1; then
         cloc include src examples tests benchmarks --quiet --not-match-d=third_party
     fi
