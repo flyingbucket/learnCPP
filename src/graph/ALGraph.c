@@ -4,6 +4,7 @@
 #include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "graph/GraphOps.h"
 
@@ -119,6 +120,7 @@ static Weight* get_matrix(const void* G) {
   size_t size = sizeof(Weight) * g->n_verts * g->n_verts;
   mat = (Weight*)malloc(size);
   if (mat == NULL) goto cleanup;
+  memset(mat, 0, sizeof(Weight) * n * n);
   for (int i = 0; i < g->n_edges; i++) {
     VertexId h = edges[i].h;
     VertexId t = edges[i].t;
