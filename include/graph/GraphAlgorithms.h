@@ -51,14 +51,12 @@ static inline void DestroyMSTResult(MSTResult** res) {
 MSTResult* Prim(const void* graph_context, const BaseGraph* graph_methods);
 MSTResult* Kruskal(const void* graph_contest, const BaseGraph* graph_methods);
 
-// shortest path
-// typedef struct{
-//
-// }
-// ShortestPathResult
 Weight* Dijkstra(const void* graph_context, const BaseGraph* graph_methods,
                  VertexId source);
 Weight* Floyd(const void* graph_context, const BaseGraph* graph_methods);
+
+VertexId* TopologicalSort(const void* graph_context,
+                          const BaseGraph* graph_methods);
 #ifdef __cplusplus
 }
 #endif  // __cplusplus
