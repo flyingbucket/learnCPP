@@ -1,11 +1,23 @@
 CompileFlags:
   CompilationDatabase: build/
-  Add: [-Wall, -Wextra, -Wshadow]
+  Add:
+    - -Wall
+    - -Wextra
+    - -Wshadow
+    - -std=c11
 ---
+# 针对 C 语言源文件的特殊配置
 If:
   PathMatch: .*\.c
 CompileFlags:
   Add: [-xc, -std=c11]
+
+---
+# 针对 C++ 文件的配置（包含 .cpp 和 .hpp）
+If:
+  PathMatch: .*\.(cpp|hpp|h)
+CompileFlags:
+  Add: [-std=c++20]
 Index:
   StandardLibrary: true
 
@@ -13,8 +25,8 @@ Index:
 Diagnostics:
   ClangTidy:
     Add:
-      - bugprone-* # 逻辑Bug（如越界、死循环、位运算错误）
-      - clang-analyzer-* # 内存Bug（如空指针解引用、内存泄漏、无效free）
+      - bugprone-*
+      - clang-analyzer-*
     Remove:
       - modernize-*
       - performance-*
