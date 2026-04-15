@@ -8,14 +8,14 @@ CompileFlags:
 ---
 # 针对 C 语言源文件的特殊配置
 If:
-  PathMatch: .*\.c
+  PathMatch: .*\.(c|h)
 CompileFlags:
   Add: [-xc, -std=c11]
 
 ---
 # 针对 C++ 文件的配置（包含 .cpp 和 .hpp）
 If:
-  PathMatch: .*\.(cpp|hpp|h)
+  PathMatch: .*\.(cpp|hpp)
 CompileFlags:
   Add: [-std=c++20]
 Index:
