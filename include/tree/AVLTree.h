@@ -1,14 +1,21 @@
 #ifndef INCLUDE_TREE_AVLTREE_H
 #define INCLUDE_TREE_AVLTREE_H
-#include <stddef.h>
+#if defined(__clang__)
+#pragma clang diagnostic ignored "-Wunused-function"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif
 
-#include <cstddef>
+#ifdef __cplusplus
+extern "C" {
+#endif  // __cplusplus
+#include <stddef.h>
 
 #include "tree/BinaryTree.h"
 
 typedef struct AVLNode {
-  AVLNode* l;
-  AVLNode* r;
+  struct AVLNode* l;
+  struct AVLNode* r;
   int h;
   char data[];
 } AVLNode;
@@ -44,7 +51,6 @@ static inline bool AVLTreeInsert(AVLTree* tree, const char* key,
                                  size_t elem_size) {
   if (!tree) return false;
 
-  // 1. 路径栈：64 层足够处理 2^64 规模的树
   AVLNode** path[64];
   int top = 0;
 
@@ -56,7 +62,7 @@ static inline bool AVLTreeInsert(AVLTree* tree, const char* key,
     curr = (res > 0) ? &((*curr)->r) : &((*curr)->l);
   }
 
-  // 2. 插入新节点
+  // 插入新节点
   AVLNode* node = (AVLNode*)malloc(sizeof(AVLNode) + elem_size);
   if (!node) return false;
   node->l = node->r = NULL;
@@ -64,7 +70,7 @@ static inline bool AVLTreeInsert(AVLTree* tree, const char* key,
   memcpy(node->data, key, elem_size);
   *curr = node;
 
-  // 3. 向上回溯并旋转
+  // 向上回溯并旋转
   while (top > 0) {
     AVLNode** p_node_ptr = path[--top];
     AVLNode* p = *p_node_ptr;
@@ -128,5 +134,15 @@ static inline void DestroyAVLTree(AVLTree* tree) {
   recrsize_free_AVLNode_(tree->root);
   tree->root = NULL;
 }
+
+#ifdef __cplusplus
+}
+#endif  // __cplusplus
+
+#if defined(__clang__)
+#pragma clang diagnostic warning "-Wunused-function"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic warning "-Wunused-function"
+#endif
 
 #endif  // !INCLUDE_TREE_AVLTREE_H

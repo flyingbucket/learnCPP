@@ -4,10 +4,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include <cstddef>
-#include <cstdlib>
-#include <cstring>
-
 #include "tree/BinaryTree.h"
 
 typedef struct {

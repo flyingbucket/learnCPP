@@ -5,7 +5,7 @@
 #include <string.h>
 
 #include "queue/SqQueue.h"
-
+typedef unsigned uint;
 typedef struct {
   void* arr;
   size_t elem_size;
@@ -14,8 +14,8 @@ typedef struct {
 } BiTreeArr;
 
 typedef struct Node {
-  Node* l;
-  Node* r;
+  struct Node* l;
+  struct Node* r;
   char data[];
 } Node, *BiTreeLi;
 
