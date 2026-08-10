@@ -11,7 +11,7 @@ template <typename T, size_t N> void printArray(const T (&arr)[N]) {
   std::cout << "]\n";
 }
 
-int main(int argc, char *argv[]) {
+int main() {
   std::cout << "1. 显式指定大小与初始化列表:\n";
   int arr1[5] = {10, 20, 30, 40, 50};
   printArray(arr1);
