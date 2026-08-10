@@ -1,0 +1,9 @@
+CompileFlags:
+  Add:
+    - "-std=c++20"
+    - "-Wall"
+  Remove:
+    - "-W*-extension*" # 移除某些不必要的警告扩展
+
+Diagnostics:
+  UnusedIncludes: Strict # 严格检查未使用的头文件
