@@ -1,3 +1,13 @@
+/// Semantic vs. Low-Level Concept
+/// At the semantic level, a reference is an alias for an existing variable.
+/// Operating on a reference is equivalent to operating directly on the
+/// object itself.
+///
+/// At the underlying assembly and memory level, a reference is
+/// typically implemented as a thin pointer rather than a fat pointer (like
+/// Rust's slice references). Implicit dereferencing is automatically handled
+/// by the compiler.
+
 #include <iostream>
 #include <string>
 
@@ -7,24 +17,6 @@ struct Player {
 };
 
 int main() {
-  std::cout
-      << "===================================================================="
-         "\n"
-      << "[1. Semantic vs. Low-Level Concept]\n"
-      << "At the semantic level, a reference is an alias for an existing "
-         "variable.\n"
-      << "Operating on a reference is equivalent to operating directly on the\n"
-      << "object itself.\n\n"
-      << "At the underlying assembly and memory level, a reference is "
-         "typically\n"
-      << "implemented as a thin pointer rather than a fat pointer (like "
-         "Rust's\n"
-      << "slice references). Implicit dereferencing is automatically handled "
-         "by\n"
-      << "the compiler.\n"
-      << "===================================================================="
-         "\n\n";
-
   // Re-binding Test: Pointers vs. References
   int x = 100;
   int y = 200;

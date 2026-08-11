@@ -1,14 +1,14 @@
-#include <concepts>
-#include <cstddef>
-#include <iostream>
-#include <string>
-
 /// In cpp, Struct is basicly identital to Class. You can implement all kinds of
 /// methods in a Struct.
 /// Struct also supports inheritance and polymorphism.
 /// The only difference is that Structs are public by default while Classes are
 /// private by default.
 /// Here is an example:
+
+#include <concepts>
+#include <cstddef>
+#include <iostream>
+#include <string>
 
 // Dynamic Polymorphism Interface
 struct Printable {
