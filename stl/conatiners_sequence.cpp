@@ -42,19 +42,17 @@ void demo_array() {
   std::cout << "\n\n";
 }
 
-/**
- * @brief Demonstrates std::vector
- *
- * - Underlying Structure: Dynamically allocated contiguous memory (Dynamic
- * Array).
- * - Performance:
- *   - Random access: O(1)
- *   - Insertion/Deletion at the end: Amortized O(1)
- *   - Insertion/Deletion in the middle/front: O(N) because elements must be
- * shifted.
- * - Use Case: Default choice for most sequence container needs. Excellent cache
- *   locality and fast iteration.
- */
+// @brief Demonstrates std::vector
+//
+// - Underlying Structure: Dynamically allocated contiguous memory (Dynamic
+// Array).
+// - Performance:
+//   - Random access: O(1)
+//   - Insertion/Deletion at the end: Amortized O(1)
+//   - Insertion/Deletion in the middle/front: O(N) because elements must be
+// shifted.
+// - Use Case: Default choice for most sequence container needs. Excellent cache
+//   locality and fast iteration.
 void demo_vector() {
   std::cout << "--- std::vector Demo ---\n";
 
@@ -75,18 +73,16 @@ void demo_vector() {
   std::cout << "\n\n";
 }
 
-/**
- * @brief Demonstrates std::deque (Double-Ended Queue)
- *
- * - Underlying Structure: A sequence of individually allocated fixed-size
- * arrays.
- * - Performance:
- *   - Random access: O(1) (slightly slower than vector due to pointer math).
- *   - Insertion/Deletion at front and back: O(1)
- *   - Insertion/Deletion in the middle: O(N)
- * - Use Case: When you need fast insertions and deletions at BOTH ends of the
- *   sequence (e.g., a queue or scheduling system).
- */
+// @brief Demonstrates std::deque (Double-Ended Queue)
+//
+// - Underlying Structure: A sequence of individually allocated fixed-size
+// arrays.
+// - Performance:
+//   - Random access: O(1) (slightly slower than vector due to pointer math).
+//   - Insertion/Deletion at front and back: O(1)
+//   - Insertion/Deletion in the middle: O(N)
+// - Use Case: When you need fast insertions and deletions at BOTH ends of the
+//   sequence (e.g., a queue or scheduling system).
 void demo_deque() {
   std::cout << "--- std::deque Demo ---\n";
 
@@ -103,16 +99,14 @@ void demo_deque() {
   std::cout << "\n\n";
 }
 
-/**
- * @brief Demonstrates std::list
- *
- * - Underlying Structure: Doubly-linked list.
- * - Performance:
- *   - Random access: Not supported (must traverse sequentially, O(N)).
- *   - Insertion/Deletion anywhere: O(1) (if you already have the iterator).
- * - Use Case: When frequent insertions and deletions from the middle of the
- *   sequence are required, and random access is not needed.
- */
+// @brief Demonstrates std::list
+//
+// - Underlying Structure: Doubly-linked list.
+// - Performance:
+//   - Random access: Not supported (must traverse sequentially, O(N)).
+//   - Insertion/Deletion anywhere: O(1) (if you already have the iterator).
+// - Use Case: When frequent insertions and deletions from the middle of the
+//   sequence are required, and random access is not needed.
 void demo_list() {
   std::cout << "--- std::list Demo ---\n";
 
@@ -133,18 +127,16 @@ void demo_list() {
   std::cout << "\n\n";
 }
 
-/**
- * @brief Demonstrates std::forward_list
- *
- * - Underlying Structure: Singly-linked list.
- * - Performance:
- *   - Random access: Not supported.
- *   - Insertion/Deletion: O(1) but only AFTER a given node (insert_after).
- *   - Iteration: Forward only.
- * - Use Case: When memory overhead must be kept to an absolute minimum and
- *   you only need to traverse the data sequentially in one direction.
- *   (Comparable to a manual C-style singly linked list).
- */
+// @brief Demonstrates std::forward_list
+//
+// - Underlying Structure: Singly-linked list.
+// - Performance:
+//   - Random access: Not supported.
+//   - Insertion/Deletion: O(1) but only AFTER a given node (insert_after).
+//   - Iteration: Forward only.
+// - Use Case: When memory overhead must be kept to an absolute minimum and
+//   you only need to traverse the data sequentially in one direction.
+//   (Comparable to a manual C-style singly linked list).
 void demo_forward_list() {
   std::cout << "--- std::forward_list Demo ---\n";
 
@@ -164,9 +156,6 @@ void demo_forward_list() {
   std::cout << "\n\n";
 }
 
-/**
- * @brief Main function to execute all container demonstrations.
- */
 int main() {
   std::cout << "========================================\n";
   std::cout << " C++ Sequence Containers Demonstration \n";
