@@ -16,6 +16,7 @@
 #include <forward_list>
 #include <iostream>
 #include <list>
+#include <ostream>
 #include <vector>
 
 // @brief Demonstrates std::array
@@ -58,9 +59,24 @@ void demo_vector() {
 
   std::vector<int> vec = {1, 2, 3};
 
+  // info
+  std::cout << "vec size: " << vec.size() << std::endl;
+  std::cout << "vec capacity: " << vec.capacity() << std::endl;
+  std::cout << "is vec empty?: " << vec.empty() << std::endl;
+
+  // get element by index
+  std::cout << "element at index 1: " << vec.at(1) << std::endl;
+
+  // reserve memory for the vector for future push, vector size stay the same
+  vec.reserve(50);
+
   // Dynamic resizing
   vec.push_back(4);
   vec.push_back(5);
+
+  // release unused memory
+  vec.shrink_to_fit();
+
   vec.pop_back(); // Removes the last element (5)
 
   // Random access
