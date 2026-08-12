@@ -2,7 +2,6 @@
 #include <string>
 #include <string_view>
 
-/// @file demo_string.cpp
 /// @brief Introduction to std::string in C++
 ///
 /// std::string (std::basic_string<char>) represents a contiguous sequence of

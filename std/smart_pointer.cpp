@@ -2,7 +2,6 @@
 #include <memory>
 #include <string>
 
-/// @file demo_smart_pointers.cpp
 /// @brief Introduction to C++ Smart Pointers (std::unique_ptr, std::shared_ptr,
 /// std::weak_ptr)
 ///

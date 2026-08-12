@@ -2,7 +2,6 @@
 #include <iostream>
 #include <string>
 
-/// @file demo_bitset.cpp
 /// @brief Introduction to std::bitset in C++
 ///
 /// std::bitset<N> is a fixed-size container defined in <bitset> that stores N
@@ -62,6 +61,9 @@ void demoBitwiseOperators() {
   std::bitset<4> maskA("1100");
   std::bitset<4> maskB("1010");
 
+  std::cout << "maskA: " << maskA << "\n";
+  std::cout << "maskB: " << maskB << "\n";
+
   std::cout << "AND (&) : " << (maskA & maskB) << "\n";
   std::cout << "OR  (|) : " << (maskA | maskB) << "\n";
   std::cout << "XOR (^) : " << (maskA ^ maskB) << "\n";
@@ -78,6 +80,8 @@ void demoBitsetUtilitiesAndConversions() {
   std::cout << "=== std::bitset: Utilities & Conversions ===\n";
 
   std::bitset<8> bits("00111100");
+
+  std::cout << "bits: " << bits << "\n";
 
   std::cout << "Total bits count  : " << bits.size() << "\n";
   std::cout << "Number of set bits : " << bits.count() << "\n";
