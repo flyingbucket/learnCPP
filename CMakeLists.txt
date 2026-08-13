@@ -13,15 +13,26 @@ add_compile_options(
     -Wextra
     -g
 )
+
+# colorful errors and warnings
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   add_compile_options(-fdiagnostics-color=always)
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-fcolor-diagnostics)
 endif()
 
+# ccache
+find_program(CCACHE_PROGRAM ccache)
+if(CCACHE_PROGRAM)
+  set(CMAKE_C_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
+  set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
+  message(STATUS "ccache enabled: ${CCACHE_PROGRAM}")
+endif()
 
+# modl & sanitizer
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-  # Sanitizers 需要同时传入编译阶段和链接阶段
+  add_link_options(-fuse-ld=mold)
+
   add_compile_options(-fsanitize=address,undefined)
   add_link_options(-fsanitize=address,undefined)
 endif()
