@@ -1,0 +1,9 @@
+---
+Checks: >
+  -*, bugprone-use-after-move, bugprone-dangling-*,
+  cppcoreguidelines-owning-memory, cppcoreguidelines-special-member-functions,
+  cppcoreguidelines-rvalue-reference-param-not-moved, performance-move-const-arg
+
+HeaderFilterRegex: '.*'
+
+UseColor: true
